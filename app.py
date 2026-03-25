@@ -21,7 +21,9 @@ DESKTOP_FOLDER = (
 )
 
 SCREENSHOT_FOLDER = (
-    os.path.join(USERPROFILE, "OneDrive", "Pictures", "Screenshots")
+    os.path.join(USERPROFILE, "OneDrive", "Documents", "Pictures", "Screenshots")
+    if os.path.exists(os.path.join(USERPROFILE, "OneDrive", "Documents", "Pictures", "Screenshots"))
+    else os.path.join(USERPROFILE, "OneDrive", "Pictures", "Screenshots")
     if os.path.exists(os.path.join(USERPROFILE, "OneDrive", "Pictures", "Screenshots"))
     else os.path.join(USERPROFILE, "Pictures", "Screenshots")
 )
