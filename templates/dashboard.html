@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AutoAgent AI Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .bg-grid-pattern {
+    background-image:
+      radial-gradient(circle,rgba(0,212,255,.05) 1px,transparent 1px),
+      linear-gradient(rgba(18,16,16,0) 50%,rgba(0,0,0,.25) 50%),
+      linear-gradient(90deg,rgba(255,0,0,.06),rgba(0,255,0,.02),rgba(0,0,255,.06));
+    background-size:24px 24px,100% 2px,100% 100%;
+  }
+  .glow-border-green  { box-shadow:0 0 10px rgba(168,232,255,.3),inset 0 0 5px rgba(168,232,255,.1); border-color:rgba(168,232,255,.5); }
+  .glow-border-blue   { box-shadow:0 0 10px rgba(87,27,193,.3),inset 0 0 5px rgba(87,27,193,.1); border-color:rgba(87,27,193,.5); }
+  .glow-border-orange { box-shadow:0 0 10px rgba(254,181,40,.3),inset 0 0 5px rgba(254,181,40,.1); border-color:rgba(254,181,40,.5); }
+  .glow-border-purple { box-shadow:0 0 10px rgba(208,188,255,.3),inset 0 0 5px rgba(208,188,255,.1); border-color:rgba(208,188,255,.5); }
+  .pulse-ring { position:relative; }
+  .pulse-ring::before {
+    content:''; position:absolute; top:-4px;right:-4px;bottom:-4px;left:-4px;
+    border:2px solid rgba(254,181,40,.5); border-radius:.85rem;
+    animation:pulse-ring 2s cubic-bezier(.455,.03,.515,.955) infinite;
+  }
+  @keyframes pulse-ring { 0%{transform:scale(.95);opacity:.8} 50%{transform:scale(1.05);opacity:.3} 100%{transform:scale(.95);opacity:.8} }
+  .pulse-text-green { animation:pulse-green 3s ease-in-out infinite; }
+  @keyframes pulse-green { 0%,100%{opacity:1;text-shadow:0 0 8px rgba(168,232,255,.4)} 50%{opacity:.7;text-shadow:0 0 2px rgba(168,232,255,.1)} }
+  .ai-panel-glow { box-shadow:0 0 25px rgba(0,212,255,.25); border:2px solid rgba(0,212,255,.6); animation:border-pulse 4s infinite; }
+  @keyframes border-pulse { 0%,100%{border-color:rgba(0,212,255,.6);box-shadow:0 0 25px rgba(0,212,255,.25)} 50%{border-color:rgba(0,212,255,.9);box-shadow:0 0 40px rgba(0,212,255,.4)} }
+  .waveform-bar { animation:waveform 1s ease-in-out infinite; }
+  @keyframes waveform { 0%,100%{height:4px} 50%{height:12px} }
+
+  /* Toast */
+  #toast { transition:all .3s ease; }
+  #toast.show { opacity:1!important; transform:translateY(0)!important; }
+
+  /* Chat */
+  #chat-messages { scrollbar-width:thin; scrollbar-color:rgba(0,212,255,.2) transparent; }
+  .chat-user { animation:fadeIn .3s ease; }
+  .chat-ai   { animation:fadeIn .3s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* Countdown */
+  .countdown-digit { font-variant-numeric:tabular-nums; }
+</style>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{
+      extend:{
+        colors:{
+          "tertiary-container":"#feb528","on-primary-container":"#00586b","outline":"#859398",
+          "on-surface":"#e5e2e1","secondary-container":"#571bc1","primary-container":"#00d4ff",
+          "on-tertiary-fixed":"#281900","on-error":"#690005","on-tertiary":"#432c00",
+          "on-secondary-fixed-variant":"#5516be","on-secondary":"#3c0091",
+          "surface-container-highest":"#353534","on-background":"#e5e2e1","tertiary-fixed":"#ffdeae",
+          "surface-container":"#201f1f","surface-dim":"#131313","on-primary-fixed-variant":"#004e5f",
+          "surface-container-high":"#2a2a2a","on-tertiary-container":"#6c4900","on-primary":"#003642",
+          "on-primary-fixed":"#001f27","surface-tint":"#3cd7ff","on-tertiary-fixed-variant":"#604100",
+          "on-secondary-container":"#c4abff","primary-fixed":"#b4ebff","inverse-surface":"#e5e2e1",
+          "surface":"#131313","secondary-fixed-dim":"#d0bcff","outline-variant":"#3c494e",
+          "on-error-container":"#ffdad6","inverse-on-surface":"#313030","surface-bright":"#3a3939",
+          "error":"#ffb4ab","error-container":"#93000a","primary":"#a8e8ff",
+          "surface-container-low":"#1c1b1b","surface-variant":"#353534","inverse-primary":"#00677e",
+          "tertiary":"#ffd9a1","primary-fixed-dim":"#3cd7ff","background":"#131313",
+          "surface-container-lowest":"#0e0e0e","secondary":"#d0bcff","tertiary-fixed-dim":"#ffba3d",
+          "secondary-fixed":"#e9ddff","on-surface-variant":"#bbc9cf","on-secondary-fixed":"#23005c"
+        },
+        fontFamily:{ "headline":["Space Grotesk"],"body":["Inter"],"label":["Inter"] },
+        borderRadius:{ "DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem" },
+      }
+    }
+  }
+</script>
+</head>
+<body class="bg-surface text-on-surface font-body">
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed top-6 right-6 z-[9999] max-w-sm bg-surface-container-high border border-primary-container/30 rounded-xl px-5 py-4 shadow-2xl opacity-0 translate-y-[-20px] pointer-events-none flex items-center gap-3">
+  <span class="material-symbols-outlined text-primary-container" id="toast-icon">check_circle</span>
+  <p class="text-sm font-medium" id="toast-msg">Action completed!</p>
+</div>
+
+<!-- Sidebar -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest flex flex-col py-6 z-50">
+  <div class="px-6 mb-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center">
+        <span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings:'FILL' 1;">smart_toy</span>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold font-headline text-primary tracking-tight">AutoAgent AI</h1>
+        <p class="text-[10px] uppercase tracking-widest text-on-surface-variant">Qwen AI Powered</p>
+      </div>
+    </div>
+    <div class="mt-6 px-3 py-2 bg-surface-container rounded-lg border border-outline-variant/20 flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+      <p class="text-[10px] font-medium text-primary">Qwen3 8B • Online</p>
+    </div>
+  </div>
+  <nav class="flex-1 px-0">
+    <div class="space-y-1">
+      <a class="flex items-center gap-4 px-6 py-3 border-l-[6px] border-primary-container text-primary bg-primary-container/10 shadow-[inset_10px_0_15px_-5px_rgba(0,212,255,0.3)]" href="#">
+        <span class="material-symbols-outlined text-xl">dashboard</span>
+        <span class="text-xs uppercase tracking-wider font-bold">Dashboard</span>
+      </a>
+      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
+        <span class="material-symbols-outlined text-xl">notification_important</span>
+        <span class="text-xs uppercase tracking-wider font-medium">Clean</span>
+        <span class="ml-auto w-2 h-2 rounded-full bg-error animate-pulse"></span>
+      </a>
+      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
+        <span class="material-symbols-outlined text-xl">auto_awesome_motion</span>
+        <span class="text-xs uppercase tracking-wider font-medium">Organise</span>
+      </a>
+      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
+        <span class="material-symbols-outlined text-xl">memory</span>
+        <span class="text-xs uppercase tracking-wider font-medium">Processes</span>
+      </a>
+      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
+        <span class="material-symbols-outlined text-xl">folder_zip</span>
+        <span class="text-xs uppercase tracking-wider font-medium">Large Files</span>
+      </a>
+      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
+        <span class="material-symbols-outlined text-xl">smart_toy</span>
+        <span class="text-xs uppercase tracking-wider font-medium">AI Assistant</span>
+      </a>
+      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
+        <span class="material-symbols-outlined text-xl">settings</span>
+        <span class="text-xs uppercase tracking-wider font-medium">Settings</span>
+      </a>
+    </div>
+  </nav>
+  <div class="px-0 pt-6 border-t border-outline-variant/10">
+    <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white transition-colors" href="#">
+      <span class="material-symbols-outlined text-xl">help</span>
+      <span class="text-xs uppercase tracking-wider font-medium">Help</span>
+    </a>
+    <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white transition-colors" href="#">
+      <span class="material-symbols-outlined text-xl">sensors</span>
+      <span class="text-xs uppercase tracking-wider font-medium">Status</span>
+    </a>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="ml-64 min-h-screen bg-surface bg-grid-pattern flex flex-col">
+  <!-- Header -->
+  <header class="flex justify-between items-center px-8 py-6 bg-surface/80 backdrop-blur-md border-b border-primary-container/20">
+    <div>
+      <h2 class="font-headline text-2xl font-bold tracking-tight">System Overview</h2>
+      <p class="text-on-surface-variant text-sm pulse-text-green">Automated Agent Status: Active</p>
+    </div>
+    <div class="flex items-center gap-8 font-headline text-sm font-medium">
+      <span id="clock" class="text-on-surface-variant">--:-- --</span>
+      <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+      <span id="health-score" class="text-primary-container font-bold drop-shadow-[0_0_8px_rgba(0,212,255,.4)]">Health: --%</span>
+      <div class="flex items-center gap-3">
+        <button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-white">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-white">
+          <span class="material-symbols-outlined">account_circle</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex-1 p-8 space-y-8">
+
+    <!-- STAT CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- CPU -->
+      <div class="bg-surface-container-low border border-primary/20 p-6 rounded-xl glow-border-green hover:bg-surface-bright transition-all duration-300">
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">CPU Usage</span>
+          <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">memory</span>
+        </div>
+        <div class="flex items-end justify-between">
+          <div>
+            <h3 id="cpu-val" class="text-4xl font-headline font-bold text-on-surface">--%</h3>
+            <p class="text-[10px] text-primary mt-1 flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs">trending_up</span> Live
+            </p>
+          </div>
+          <div id="cpu-bars" class="w-16 h-12 flex items-end gap-1.5"></div>
+        </div>
+      </div>
+      <!-- RAM -->
+      <div class="bg-surface-container-low border border-secondary/20 p-6 rounded-xl glow-border-blue hover:bg-surface-bright transition-all duration-300">
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">RAM Usage</span>
+          <span class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1;">developer_board</span>
+        </div>
+        <div class="flex items-end justify-between">
+          <div>
+            <h3 id="ram-val" class="text-4xl font-headline font-bold text-on-surface">--%</h3>
+            <p id="ram-sub" class="text-[10px] text-secondary mt-1">-- GB used</p>
+          </div>
+          <div class="relative w-12 h-12">
+            <svg class="w-full h-full transform -rotate-90">
+              <circle class="text-secondary/10" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-width="4"/>
+              <circle id="ram-ring" class="text-secondary drop-shadow-[0_0_5px_rgba(87,27,193,.6)]" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-dasharray="125.6" stroke-dashoffset="125.6" stroke-linecap="round" stroke-width="4"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <!-- Disk -->
+      <div class="bg-surface-container-low border border-tertiary-container/20 p-6 rounded-xl glow-border-orange hover:bg-surface-bright transition-all duration-300">
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Disk Space</span>
+          <span class="material-symbols-outlined text-tertiary-container" style="font-variation-settings:'FILL' 1;">storage</span>
+        </div>
+        <div class="flex items-end justify-between">
+          <div>
+            <h3 id="disk-val" class="text-4xl font-headline font-bold text-on-surface">-- GB</h3>
+            <p id="disk-sub" class="text-[10px] text-tertiary-container mt-1">-- GB Free</p>
+          </div>
+          <div class="w-16 h-8 flex flex-col justify-end gap-1">
+            <div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden border border-tertiary-container/10">
+              <div id="disk-bar" class="h-full bg-gradient-to-r from-tertiary-container/60 to-tertiary-container shadow-[0_0_10px_rgba(254,181,40,.4)] transition-all duration-500" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Screenshots -->
+      <div class="bg-surface-container-low border border-secondary-container/20 p-6 rounded-xl glow-border-purple hover:bg-surface-bright transition-all duration-300">
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Screenshots</span>
+          <span class="material-symbols-outlined text-secondary-container" style="font-variation-settings:'FILL' 1;">camera</span>
+        </div>
+        <div class="flex items-end justify-between">
+          <div>
+            <h3 id="ss-val" class="text-4xl font-headline font-bold text-on-surface">--</h3>
+            <p id="ss-sub" class="text-[10px] text-secondary-container mt-1">-- MB</p>
+          </div>
+          <span class="material-symbols-outlined text-secondary-container text-4xl opacity-30" style="font-variation-settings:'FILL' 1;">photo_library</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIDDLE GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+      <!-- LEFT: MAINTENANCE + PROCESSES -->
+      <div class="lg:col-span-2 space-y-6">
+        <h3 class="font-headline text-lg font-bold flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary-container">auto_fix_high</span> Quick Maintenance
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <button onclick="runAction('clean/screenshots')" class="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl border border-outline-variant/10 transition-all flex flex-col items-center gap-3 group active:scale-95">
+            <div class="w-12 h-12 rounded-full bg-secondary-container/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(208,188,255,0.6)]">
+              <span class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1;">photo_library</span>
+            </div>
+            <span class="text-[10px] font-headline font-bold uppercase tracking-widest">Clean Screenshots</span>
+          </button>
+          <button onclick="runAction('clean/recyclebin')" class="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl border border-outline-variant/10 transition-all flex flex-col items-center gap-3 group active:scale-95">
+            <div class="w-12 h-12 rounded-full bg-error-container/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,116,107,0.6)]">
+              <span class="material-symbols-outlined text-error" style="font-variation-settings:'FILL' 1;">delete_sweep</span>
+            </div>
+            <span class="text-[10px] font-headline font-bold uppercase tracking-widest">Empty Recycle Bin</span>
+          </button>
+          <button onclick="runAction('clean/downloads')" class="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl border border-outline-variant/10 transition-all flex flex-col items-center gap-3 group active:scale-95">
+            <div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(0,212,255,0.6)]">
+              <span class="material-symbols-outlined text-primary-container" style="font-variation-settings:'FILL' 1;">download_for_offline</span>
+            </div>
+            <span class="text-[10px] font-headline font-bold uppercase tracking-widest">Clean Downloads</span>
+          </button>
+          <button onclick="runAction('organise/desktop')" class="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl border border-outline-variant/10 transition-all flex flex-col items-center gap-3 group active:scale-95">
+            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(168,232,255,0.6)]">
+              <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">desktop_windows</span>
+            </div>
+            <span class="text-[10px] font-headline font-bold uppercase tracking-widest">Organise Desktop</span>
+          </button>
+          <button onclick="window.open('/api/files/large','_blank')" class="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl border border-outline-variant/10 transition-all flex flex-col items-center gap-3 group active:scale-95">
+            <div class="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,217,161,0.6)]">
+              <span class="material-symbols-outlined text-tertiary" style="font-variation-settings:'FILL' 1;">find_in_page</span>
+            </div>
+            <span class="text-[10px] font-headline font-bold uppercase tracking-widest">Find Large Files</span>
+          </button>
+          <div class="relative group pulse-ring">
+            <button onclick="runAction('clean/full')" class="relative w-full h-full bg-gradient-to-br from-tertiary-container to-orange-600 p-5 rounded-xl flex flex-col items-center justify-center gap-3 transition-transform active:scale-95 shadow-[0_0_20px_rgba(254,181,40,.3)]">
+              <span class="material-symbols-outlined text-on-tertiary-fixed text-3xl" style="font-variation-settings:'FILL' 1;">bolt</span>
+              <span class="text-[10px] font-headline font-extrabold uppercase tracking-widest text-on-tertiary-fixed">Full System Clean</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Processes -->
+        <div class="bg-surface-container-low rounded-xl border border-outline-variant/10 overflow-hidden">
+          <div class="px-6 py-4 border-b border-outline-variant/10 flex justify-between items-center">
+            <h4 class="font-headline font-bold text-xs uppercase tracking-widest">Active Processes</h4>
+            <div class="flex gap-12 mr-20 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">
+              <span>CPU%</span><span>RAM</span>
+            </div>
+          </div>
+          <div id="processes-list" class="divide-y divide-outline-variant/5">
+            <div class="px-6 py-4 text-xs text-on-surface-variant">Loading processes...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: AI CHAT -->
+      <div class="h-[640px] flex flex-col">
+        <div class="flex-1 flex flex-col bg-surface-container-lowest ai-panel-glow rounded-2xl overflow-hidden shadow-2xl">
+          <div class="p-6 border-b border-primary-container/20 flex items-center gap-3 bg-primary-container/5">
+            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,.4)]">
+              <span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings:'FILL' 1;">smart_toy</span>
+            </div>
+            <div>
+              <h4 class="font-headline font-bold text-on-surface">Qwen Assistant</h4>
+              <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                <span class="text-[10px] text-primary uppercase font-bold tracking-widest">Listening...</span>
+              </div>
+            </div>
+            <button onclick="analyseSystem()" class="ml-auto text-on-surface-variant hover:text-primary-container transition-colors" title="AI Smart Analysis">
+              <span class="material-symbols-outlined text-xl">auto_awesome</span>
+            </button>
+          </div>
+
+          <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-6">
+            <div class="flex justify-start items-start gap-3">
+              <div class="w-8 h-8 rounded-full bg-primary-container flex-shrink-0 flex items-center justify-center">
+                <span class="material-symbols-outlined text-on-primary-container text-lg" style="font-variation-settings:'FILL' 1;">smart_toy</span>
+              </div>
+              <div class="max-w-[85%] bg-surface-container-high border border-outline-variant/20 p-4 rounded-2xl rounded-tl-none">
+                <p class="text-sm text-on-surface-variant leading-relaxed">
+                  Hi! I'm AutoAgent AI powered by Qwen3 8B. I can help you clean your PC, organise files, or answer any Windows questions. What would you like to do?
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 border-t border-outline-variant/20 bg-surface-container-lowest">
+            <div class="flex items-center gap-3 bg-surface-container px-4 py-2 rounded-full border border-outline-variant/30 focus-within:border-primary-container transition-colors">
+              <input id="chat-input" class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 placeholder:text-on-surface-variant/50" placeholder="Ask AutoAgent to do something..." type="text" onkeydown="if(event.key==='Enter') sendChat()"/>
+              <button onclick="sendChat()" class="w-10 h-10 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,.4)] hover:scale-105 active:scale-95 transition-all">
+                <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">send</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-10">
+      <!-- Countdown -->
+      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10 flex items-center gap-5 hover:bg-surface-bright transition-colors">
+        <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+          <span class="material-symbols-outlined text-3xl text-primary">timer</span>
+        </div>
+        <div>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">T-Minus Scan</p>
+          <div class="flex items-baseline gap-1 font-headline font-bold text-primary">
+            <span id="cd-h" class="text-2xl countdown-digit">00</span><span class="text-xs text-on-surface-variant">:</span>
+            <span id="cd-m" class="text-2xl countdown-digit">05</span><span class="text-xs text-on-surface-variant">:</span>
+            <span id="cd-s" class="text-2xl countdown-digit">00</span>
+          </div>
+        </div>
+      </div>
+      <!-- Security -->
+      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10 flex items-center gap-5 hover:bg-surface-bright transition-colors">
+        <div class="relative w-14 h-14 flex items-center justify-center">
+          <svg class="w-full h-full transform -rotate-90">
+            <circle class="text-surface-container-highest" cx="28" cy="28" fill="transparent" r="24" stroke="currentColor" stroke-width="4"/>
+            <circle id="sec-ring" class="text-primary drop-shadow-[0_0_8px_rgba(168,232,255,.6)]" cx="28" cy="28" fill="transparent" r="24" stroke="currentColor" stroke-dasharray="150.7" stroke-dashoffset="3" stroke-linecap="round" stroke-width="4"/>
+          </svg>
+          <span class="absolute text-[10px] font-bold text-primary">98%</span>
+        </div>
+        <div>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">System Integrity</p>
+          <p class="font-headline font-bold text-on-surface text-xl">Stable &amp; Secure</p>
+        </div>
+      </div>
+      <!-- Activity Feed -->
+      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10 flex items-center gap-5 hover:bg-surface-bright transition-colors">
+        <div class="w-14 h-14 bg-tertiary/10 rounded-xl flex flex-col items-center justify-center border border-tertiary/20">
+          <div class="flex items-end gap-0.5 h-6">
+            <div class="waveform-bar w-1 bg-tertiary rounded-full" style="animation-delay:.1s"></div>
+            <div class="waveform-bar w-1 bg-tertiary rounded-full" style="animation-delay:.3s"></div>
+            <div class="waveform-bar w-1 bg-tertiary rounded-full" style="animation-delay:.2s"></div>
+            <div class="waveform-bar w-1 bg-tertiary rounded-full" style="animation-delay:.4s"></div>
+          </div>
+        </div>
+        <div>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Activity Feed</p>
+          <p class="font-headline font-bold text-on-surface text-xl">
+            <span id="log-count">0</span> Actions <span class="text-[10px] font-normal text-tertiary ml-1">Today</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = "http://localhost:5000/api";
+let chatHistory = [];
+let cpuHistory  = [];
+let countdown   = 300; // 5 min
+
+// ── TOAST ──────────────────────────────────────────────
+function showToast(msg, ok=true) {
+  const t = document.getElementById("toast");
+  const i = document.getElementById("toast-icon");
+  const m = document.getElementById("toast-msg");
+  i.textContent = ok ? "check_circle" : "error";
+  i.className = `material-symbols-outlined ${ok ? "text-primary-container" : "text-error"}`;
+  m.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3500);
+}
+
+// ── ACTIONS ────────────────────────────────────────────
+async function runAction(endpoint) {
+  try {
+    const r = await fetch(`${API}/${endpoint}`, {method:"POST"});
+    const d = await r.json();
+    showToast(d.msg, d.ok);
+    if(d.ok) { fetchStats(); fetchLogs(); }
+  } catch(e) { showToast("Server error — is Flask running?", false); }
+}
+
+// ── STATS ──────────────────────────────────────────────
+async function fetchStats() {
+  try {
+    const r = await fetch(`${API}/stats`);
+    const d = await r.json();
+
+    // Clock & health
+    document.getElementById("clock").textContent        = d.time;
+    document.getElementById("health-score").textContent = `Health: ${d.health}%`;
+
+    // CPU
+    document.getElementById("cpu-val").textContent = `${d.cpu}%`;
+    cpuHistory.push(d.cpu); if(cpuHistory.length>5) cpuHistory.shift();
+    const bars = document.getElementById("cpu-bars");
+    bars.innerHTML = cpuHistory.map(v => {
+      const h = Math.max(8, Math.round(v * 0.48));
+      const op = 0.3 + (v/100)*0.7;
+      return `<div class="w-1.5 bg-primary rounded-full shadow-[0_0_6px_rgba(168,232,255,0.5)]" style="height:${h}px;opacity:${op}"></div>`;
+    }).join("");
+
+    // RAM
+    document.getElementById("ram-val").textContent = `${d.ram_percent}%`;
+    document.getElementById("ram-sub").textContent = `${d.ram_used_gb} / ${d.ram_total_gb} GB`;
+    const offset = 125.6 - (125.6 * d.ram_percent / 100);
+    document.getElementById("ram-ring").style.strokeDashoffset = offset;
+
+    // Disk
+    document.getElementById("disk-val").textContent = `${d.disk_used_gb} GB`;
+    document.getElementById("disk-sub").textContent = `${d.disk_free_gb} GB Free`;
+    document.getElementById("disk-bar").style.width = `${d.disk_percent}%`;
+
+    // Screenshots
+    document.getElementById("ss-val").textContent = d.ss_count.toLocaleString();
+    document.getElementById("ss-sub").textContent = `${d.ss_mb} MB`;
+
+    // Processes
+    const colors = ["border-primary text-primary","border-tertiary-container text-tertiary-container","border-secondary-container text-secondary-container","border-error text-error","border-secondary text-secondary"];
+    const dotColors = ["bg-primary shadow-[0_0_8px_rgba(168,232,255,0.6)]","bg-tertiary-container shadow-[0_0_8px_rgba(254,181,40,0.6)]","bg-secondary-container shadow-[0_0_8px_rgba(87,27,193,0.6)]","bg-error","bg-secondary"];
+    const pl = document.getElementById("processes-list");
+    if(d.processes.length) {
+      pl.innerHTML = d.processes.map((p,i) => {
+        const c = colors[i % colors.length];
+        const dc = dotColors[i % dotColors.length];
+        return `<div class="px-6 py-4 flex items-center justify-between hover:bg-surface-container-high transition-colors border-l-4 ${c.split(" ")[0]}">
+          <div class="flex items-center gap-4">
+            <div class="w-2 h-2 rounded-full ${dc}"></div>
+            <span class="text-sm font-medium">${p.name}</span>
+          </div>
+          <div class="flex gap-12 items-center">
+            <span class="text-xs font-bold ${c.split(" ")[1]}">${p.cpu}%</span>
+            <span class="text-xs text-on-surface-variant w-20 text-right">${p.ram}</span>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+  } catch(e) { console.warn("Stats fetch failed", e); }
+}
+
+// ── LOGS ───────────────────────────────────────────────
+async function fetchLogs() {
+  try {
+    const r = await fetch(`${API}/logs`);
+    const d = await r.json();
+    document.getElementById("log-count").textContent = d.total;
+  } catch(e) {}
+}
+
+// ── CHAT ───────────────────────────────────────────────
+function addMessage(text, isUser) {
+  const box = document.getElementById("chat-messages");
+  const div = document.createElement("div");
+  div.className = `flex ${isUser ? "justify-end chat-user" : "justify-start items-start gap-3 chat-ai"}`;
+  if(isUser) {
+    div.innerHTML = `<div class="max-w-[80%] bg-secondary-container text-on-surface p-4 rounded-2xl rounded-tr-none shadow-lg border border-white/5">
+      <p class="text-sm">${text}</p></div>`;
+  } else {
+    div.innerHTML = `<div class="w-8 h-8 rounded-full bg-primary-container flex-shrink-0 flex items-center justify-center">
+        <span class="material-symbols-outlined text-on-primary-container text-lg" style="font-variation-settings:'FILL' 1;">smart_toy</span></div>
+      <div class="max-w-[85%] bg-surface-container-high border border-outline-variant/20 p-4 rounded-2xl rounded-tl-none">
+        <p class="text-sm text-on-surface-variant leading-relaxed">${text}</p></div>`;
+  }
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function addThinking() {
+  const box = document.getElementById("chat-messages");
+  const div = document.createElement("div");
+  div.id = "thinking";
+  div.className = "flex justify-start items-center gap-3 chat-ai";
+  div.innerHTML = `<div class="w-8 h-8 rounded-full bg-primary-container flex-shrink-0 flex items-center justify-center">
+      <span class="material-symbols-outlined text-on-primary-container text-lg" style="font-variation-settings:'FILL' 1;">smart_toy</span></div>
+    <div class="flex items-center gap-2 px-4 py-2 bg-surface-container-high border border-primary-container/20 rounded-full">
+      <div class="flex gap-1">
+        <div class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay:0s"></div>
+        <div class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay:.2s"></div>
+        <div class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay:.4s"></div>
+      </div>
+      <span class="text-[10px] uppercase font-bold text-primary-container tracking-wider">Thinking...</span>
+    </div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendChat() {
+  const input = document.getElementById("chat-input");
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value = "";
+  addMessage(msg, true);
+  chatHistory.push({role:"user", content:msg});
+  addThinking();
+  try {
+    const r = await fetch(`${API}/ai/chat`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({message: msg, history: chatHistory.slice(-10)})
+    });
+    const d = await r.json();
+    document.getElementById("thinking")?.remove();
+    addMessage(d.reply, false);
+    if(d.ok) chatHistory.push({role:"assistant", content:d.reply});
+    fetchLogs();
+  } catch(e) {
+    document.getElementById("thinking")?.remove();
+    addMessage("⚠️ Can't reach Flask server. Make sure app.py is running!", false);
+  }
+}
+
+async function analyseSystem() {
+  addMessage("Run AI smart analysis on my system", true);
+  addThinking();
+  try {
+    const r = await fetch(`${API}/ai/analyse`, {method:"POST"});
+    const d = await r.json();
+    document.getElementById("thinking")?.remove();
+    addMessage(d.reply, false);
+  } catch(e) {
+    document.getElementById("thinking")?.remove();
+    addMessage("⚠️ Analysis failed — is Flask running?", false);
+  }
+}
+
+// ── COUNTDOWN ──────────────────────────────────────────
+function tickCountdown() {
+  if(countdown <= 0) { countdown = 300; fetchStats(); }
+  const h = String(Math.floor(countdown/3600)).padStart(2,"0");
+  const m = String(Math.floor((countdown%3600)/60)).padStart(2,"0");
+  const s = String(countdown%60).padStart(2,"0");
+  document.getElementById("cd-h").textContent = h;
+  document.getElementById("cd-m").textContent = m;
+  document.getElementById("cd-s").textContent = s;
+  countdown--;
+}
+
+// ── INIT ───────────────────────────────────────────────
+fetchStats();
+fetchLogs();
+setInterval(fetchStats, 5000);
+setInterval(fetchLogs, 10000);
+setInterval(tickCountdown, 1000);
+</script>
+</body>
+</html>
