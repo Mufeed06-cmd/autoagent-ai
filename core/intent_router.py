@@ -7,15 +7,19 @@ Categories:
 - code   : write, run, debug, explain, or fix code in any language
 - file   : create, read, write, delete, list files or folders
 - app    : open, launch, or close an application or program
-- search : find current info, news, facts about real people/events (starts with "search")
+- search : find current info, news, facts (starts with "search")
+- memory : remember something, recall something, forget something, what do you know about me
 - chat   : explain concepts, definitions, general knowledge, conversation
 
 Rules:
-- "what is X", "explain X", "how does X work" → chat
-- "search X", "find info on X", "latest news on X" → search
-- "open X", "launch X" → app
-- "write a X program", "debug this code" → code
-- "list files", "create file", "delete X" → file
+- "remember my name is X" → memory
+- "what do you know about me" → memory
+- "recall X", "forget X" → memory
+- "what is X", "explain X" → chat
+- "search X" → search
+- "open X" → app
+- "write code" → code
+- "list files" → file
 
 Respond with ONLY the category word.
 
@@ -29,10 +33,8 @@ Category:"""
     })
 
     result = response.json()["response"].strip().lower()
-
-    # Extract first word only in case model adds extra text
     result = result.split()[0] if result.split() else "chat"
 
-    if result not in ("code", "file", "app", "search", "chat"):
+    if result not in ("code", "file", "app", "search", "memory", "chat"):
         return "chat"
     return result
