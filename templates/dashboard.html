@@ -1,593 +1,573 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>AutoAgent AI Dashboard</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AutoAgent // SYSTEM</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=VT323&display=swap" rel="stylesheet"/>
 <style>
-  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
-  .bg-grid-pattern {
-    background-image:
-      radial-gradient(circle,rgba(0,212,255,.05) 1px,transparent 1px),
-      linear-gradient(rgba(18,16,16,0) 50%,rgba(0,0,0,.25) 50%),
-      linear-gradient(90deg,rgba(255,0,0,.06),rgba(0,255,0,.02),rgba(0,0,255,.06));
-    background-size:24px 24px,100% 2px,100% 100%;
-  }
-  .glow-border-green  { box-shadow:0 0 10px rgba(168,232,255,.3),inset 0 0 5px rgba(168,232,255,.1); border-color:rgba(168,232,255,.5); }
-  .glow-border-blue   { box-shadow:0 0 10px rgba(87,27,193,.3),inset 0 0 5px rgba(87,27,193,.1); border-color:rgba(87,27,193,.5); }
-  .glow-border-orange { box-shadow:0 0 10px rgba(254,181,40,.3),inset 0 0 5px rgba(254,181,40,.1); border-color:rgba(254,181,40,.5); }
-  .glow-border-purple { box-shadow:0 0 10px rgba(208,188,255,.3),inset 0 0 5px rgba(208,188,255,.1); border-color:rgba(208,188,255,.5); }
-  .pulse-ring { position:relative; }
-  .pulse-ring::before {
-    content:''; position:absolute; top:-4px;right:-4px;bottom:-4px;left:-4px;
-    border:2px solid rgba(254,181,40,.5); border-radius:.85rem;
-    animation:pulse-ring 2s cubic-bezier(.455,.03,.515,.955) infinite;
-  }
-  @keyframes pulse-ring { 0%{transform:scale(.95);opacity:.8} 50%{transform:scale(1.05);opacity:.3} 100%{transform:scale(.95);opacity:.8} }
-  .pulse-text-green { animation:pulse-green 3s ease-in-out infinite; }
-  @keyframes pulse-green { 0%,100%{opacity:1;text-shadow:0 0 8px rgba(168,232,255,.4)} 50%{opacity:.7;text-shadow:0 0 2px rgba(168,232,255,.1)} }
-  .ai-panel-glow { box-shadow:0 0 25px rgba(0,212,255,.25); border:2px solid rgba(0,212,255,.6); animation:border-pulse 4s infinite; }
-  @keyframes border-pulse { 0%,100%{border-color:rgba(0,212,255,.6);box-shadow:0 0 25px rgba(0,212,255,.25)} 50%{border-color:rgba(0,212,255,.9);box-shadow:0 0 40px rgba(0,212,255,.4)} }
-  .waveform-bar { animation:waveform 1s ease-in-out infinite; }
-  @keyframes waveform { 0%,100%{height:4px} 50%{height:12px} }
+:root {
+  --black: #000305;
+  --dark: #030810;
+  --panel: #050e1a;
+  --panel2: #071220;
+  --border: #0a2040;
+  --border2: #0d2d55;
+  --green: #00ff88;
+  --amber: #ffaa00;
+  --cyan: #00e5ff;
+  --red: #ff2244;
+  --text: #c8e8d0;
+  --text2: #4a7a60;
+  --text3: #1a3a28;
+  --mono: 'Share Tech Mono', monospace;
+  --display: 'Orbitron', monospace;
+  --retro: 'VT323', monospace;
+  --glow-g: 0 0 8px rgba(0,255,136,0.6),0 0 20px rgba(0,255,136,0.2);
+  --glow-a: 0 0 8px rgba(255,170,0,0.6),0 0 20px rgba(255,170,0,0.2);
+  --glow-c: 0 0 8px rgba(0,229,255,0.5),0 0 20px rgba(0,229,255,0.15);
+  --glow-r: 0 0 8px rgba(255,34,68,0.6),0 0 20px rgba(255,34,68,0.2);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--black);color:var(--text);font-family:var(--mono);min-height:100vh;display:flex;overflow:hidden;cursor:crosshair}
+body::before{content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px)}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,255,136,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,0.025) 1px,transparent 1px);background-size:40px 40px}
 
-  /* Toast */
-  #toast { transition:all .3s ease; }
-  #toast.show { opacity:1!important; transform:translateY(0)!important; }
+/* SIDEBAR */
+.sidebar{width:240px;min-width:240px;background:var(--dark);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10;position:relative;overflow:hidden}
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);animation:scanH 3s ease-in-out infinite}
+@keyframes scanH{0%,100%{opacity:0}50%{opacity:1}}
+.logo-zone{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.logo-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.logo-glyph{width:42px;height:42px;border:1px solid var(--green);display:grid;place-items:center;font-size:20px;box-shadow:var(--glow-g);background:rgba(0,255,136,0.07);clip-path:polygon(8px 0%,100% 0%,100% calc(100% - 8px),calc(100% - 8px) 100%,0% 100%,0% 8px);animation:gPulse 4s ease-in-out infinite}
+@keyframes gPulse{0%,100%{box-shadow:var(--glow-g)}50%{box-shadow:0 0 20px rgba(0,255,136,0.9),0 0 40px rgba(0,255,136,0.4)}}
+.logo-title{font-family:var(--display);font-size:13px;font-weight:900;color:var(--green);letter-spacing:2px;line-height:1;animation:glitch 5s ease-in-out infinite}
+@keyframes glitch{0%,90%,100%{text-shadow:var(--glow-g)}91%{text-shadow:-2px 0 var(--red),2px 0 var(--cyan);transform:translateX(-1px)}93%{text-shadow:2px 0 var(--red),-2px 0 var(--cyan);transform:translateX(1px)}95%{text-shadow:var(--glow-g);transform:none}}
+.logo-sub{font-size:9px;color:var(--text2);letter-spacing:3px;margin-top:3px}
+.status-pill{display:flex;align-items:center;gap:8px;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.2);padding:5px 10px;font-size:10px;color:var(--green);clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%)}
+.status-pill::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.2s step-end infinite;box-shadow:var(--glow-g)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.nav-zone{flex:1;padding:12px 0;overflow-y:auto}
+.nav-cat{font-size:9px;letter-spacing:3px;color:var(--text3);padding:10px 20px 4px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:12px;color:var(--text2);transition:all .15s;position:relative;border-left:2px solid transparent;letter-spacing:1px}
+.nav-item::before{content:attr(data-glyph);font-size:14px;width:18px;text-align:center}
+.nav-item:hover{color:var(--green);background:rgba(0,255,136,0.05);border-left-color:rgba(0,255,136,0.3)}
+.nav-item.active{color:var(--green);background:rgba(0,255,136,0.08);border-left-color:var(--green)}
+.nav-item.active::after{content:'◀';position:absolute;right:12px;font-size:8px;color:var(--green)}
+.nav-alert{width:5px;height:5px;background:var(--amber);border-radius:50%;margin-left:auto;animation:blink 1.5s infinite}
+.sys-info{padding:12px 20px;border-top:1px solid var(--border);font-size:9px;color:var(--text3);letter-spacing:1px;line-height:1.8}
 
-  /* Chat */
-  #chat-messages { scrollbar-width:thin; scrollbar-color:rgba(0,212,255,.2) transparent; }
-  .chat-user { animation:fadeIn .3s ease; }
-  .chat-ai   { animation:fadeIn .3s ease; }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;z-index:1}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;border-bottom:1px solid var(--border);background:rgba(3,8,16,0.97);position:relative}
+.topbar::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.4}
+.breadcrumb{font-family:var(--display);font-size:11px;color:var(--text2);letter-spacing:2px}
+.bc-active{color:var(--green);text-shadow:var(--glow-g)}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.top-stat{display:flex;align-items:center;gap:6px;font-size:10px;padding:4px 10px;border:1px solid var(--border2);background:var(--panel);clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%)}
+.top-stat .lbl{color:var(--text2)}
+.hlth-num{font-family:var(--display);font-size:16px;font-weight:900;color:var(--green);text-shadow:var(--glow-g)}
+.clock{font-family:var(--retro);font-size:22px;color:var(--amber);text-shadow:var(--glow-a);letter-spacing:2px}
 
-  /* Countdown */
-  .countdown-digit { font-variant-numeric:tabular-nums; }
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:20px 24px}
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-track{background:var(--dark)}
+.content::-webkit-scrollbar-thumb{background:var(--border2)}
+.section{display:none}
+.section.active{display:block}
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--green),transparent);opacity:.4}
+.sec-title{font-family:var(--display);font-size:11px;font-weight:700;color:var(--green);letter-spacing:3px;text-shadow:var(--glow-g)}
+.sec-glyph{font-size:16px;color:var(--green)}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.sc{background:var(--panel);border:1px solid var(--border);padding:16px;position:relative;overflow:hidden;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));animation:cardIn .4s ease both}
+.sc:nth-child(1){animation-delay:.05s}.sc:nth-child(2){animation-delay:.1s}.sc:nth-child(3){animation-delay:.15s}.sc:nth-child(4){animation-delay:.2s}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:.5}
+.sc::after{content:'';position:absolute;top:0;left:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--green),transparent);opacity:.5}
+.sc.am::before,.sc.am::after{background:var(--amber)!important}
+.sc.cy::before,.sc.cy::after{background:var(--cyan)!important}
+.sc.re::before,.sc.re::after{background:var(--red)!important}
+.sc-lbl{font-size:8px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between}
+.sc-val{font-family:var(--display);font-size:30px;font-weight:900;line-height:1;color:var(--green);text-shadow:var(--glow-g)}
+.sc.am .sc-val{color:var(--amber);text-shadow:var(--glow-a)}
+.sc.cy .sc-val{color:var(--cyan);text-shadow:var(--glow-c)}
+.sc.re .sc-val{color:var(--red);text-shadow:var(--glow-r)}
+.sc-unit{font-size:14px;font-family:var(--mono)}
+.sc-sub{font-size:10px;color:var(--text2);margin-top:6px}
+.bar{height:3px;background:var(--border);margin-top:10px;overflow:hidden}
+.bf{height:100%;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.bf.g{background:var(--green);box-shadow:0 0 6px var(--green)}
+.bf.a{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+.bf.c{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.bf.r{background:var(--red);box-shadow:0 0 6px var(--red)}
+
+/* ACTION BTNS */
+.act-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.ab{background:var(--panel);border:1px solid var(--border);padding:18px 16px;cursor:pointer;text-align:left;transition:all .2s;position:relative;overflow:hidden;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.ab::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(0,255,136,.04));opacity:0;transition:opacity .2s}
+.ab:hover::before{opacity:1}
+.ab:hover{border-color:var(--green);box-shadow:inset 0 0 20px rgba(0,255,136,.05)}
+.ab:hover .ab-icon{text-shadow:var(--glow-g);transform:scale(1.15)}
+.ab:active{transform:scale(.98)}
+.ab.dng:hover{border-color:var(--red);box-shadow:inset 0 0 20px rgba(255,34,68,.05)}
+.ab.dng:hover .ab-lbl{color:var(--red)}
+.ab.pri{background:linear-gradient(135deg,#1a0800,#2d1000);border-color:var(--amber);box-shadow:inset 0 0 30px rgba(255,170,0,.05)}
+.ab.pri .ab-lbl{color:var(--amber);text-shadow:var(--glow-a)}
+.ab-icon{font-size:22px;display:block;margin-bottom:8px;transition:transform .2s}
+.ab-lbl{font-size:9px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;font-family:var(--display)}
+.ab-desc{font-size:10px;color:var(--text3);margin-top:3px}
+
+/* PANEL */
+.panel{background:var(--panel);border:1px solid var(--border);margin-bottom:16px;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--green),rgba(0,255,136,.1),transparent)}
+.ph{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--border)}
+.pt{font-family:var(--display);font-size:9px;font-weight:700;letter-spacing:3px;color:var(--green);text-transform:uppercase}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{padding:8px 16px;font-size:8px;letter-spacing:2px;color:var(--text3);text-align:left;text-transform:uppercase;border-bottom:1px solid var(--border);font-family:var(--display)}
+td{padding:9px 16px;font-size:11px;border-bottom:1px solid rgba(10,32,64,.5);color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(0,255,136,.03)}
+
+/* BTNS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;font-size:9px;font-family:var(--display);letter-spacing:1px;cursor:pointer;border:1px solid;text-transform:uppercase;transition:all .15s;font-weight:700;clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);background:transparent}
+.bg{color:var(--green);border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.08)}.bg:hover{background:rgba(0,255,136,.18);box-shadow:var(--glow-g)}
+.br{color:var(--red);border-color:rgba(255,34,68,.3);background:rgba(255,34,68,.08)}.br:hover{background:rgba(255,34,68,.18);box-shadow:var(--glow-r)}
+.ba{color:var(--amber);border-color:rgba(255,170,0,.3);background:rgba(255,170,0,.08)}.ba:hover{background:rgba(255,170,0,.18)}
+.bc{color:var(--cyan);border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.08)}.bc:hover{background:rgba(0,229,255,.18)}
+.tag{display:inline-block;padding:2px 8px;font-size:9px;letter-spacing:1px;font-family:var(--display)}
+.tg{background:rgba(0,255,136,.1);color:var(--green);border:1px solid rgba(0,255,136,.2)}
+.tr{background:rgba(255,34,68,.1);color:var(--red);border:1px solid rgba(255,34,68,.2)}
+.ta{background:rgba(255,170,0,.1);color:var(--amber);border:1px solid rgba(255,170,0,.2)}
+.tc{background:rgba(0,229,255,.1);color:var(--cyan);border:1px solid rgba(0,229,255,.2)}
+.pdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:middle}
+
+/* BOTTOM ROW */
+.brow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:4px}
+.bcard{background:var(--panel);border:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:14px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);position:relative}
+.bcard::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--cyan),transparent);opacity:.3}
+.bc-lbl{font-size:8px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;font-family:var(--display)}
+.bc-val{font-family:var(--display);font-size:18px;font-weight:900;color:var(--cyan);text-shadow:var(--glow-c);margin-top:2px}
+
+/* TOAST */
+.toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--panel2);border:1px solid var(--border2);padding:10px 16px;font-size:11px;min-width:260px;display:flex;align-items:center;gap:10px;animation:tIn .2s ease;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));pointer-events:auto}
+.toast.ok{border-color:rgba(0,255,136,.4);color:var(--green)}
+.toast.err{border-color:rgba(255,34,68,.4);color:var(--red)}
+@keyframes tIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 200px)}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.chat-msgs::-webkit-scrollbar{width:4px}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--border2)}
+.msg{max-width:80%;padding:10px 14px;font-size:12px;line-height:1.6;position:relative}
+.msg.bot{background:var(--panel2);border:1px solid var(--border2);align-self:flex-start;border-left:2px solid var(--green);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%)}
+.msg.user{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);align-self:flex-end;border-right:2px solid var(--green);clip-path:polygon(8px 0,100% 0,100% 100%,0 100%,0 8px)}
+.msg-pre{font-size:9px;letter-spacing:2px;color:var(--text2);margin-bottom:4px;font-family:var(--display)}
+.chat-inrow{display:flex;gap:10px;padding:14px;border-top:1px solid var(--border);align-items:center}
+.chat-prompt{font-family:var(--display);font-size:10px;color:var(--green);letter-spacing:1px;white-space:nowrap}
+.chat-in{flex:1;background:var(--panel2);border:1px solid var(--border2);padding:8px 12px;color:var(--green);font-family:var(--mono);font-size:12px;outline:none;caret-color:var(--green);clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%)}
+.chat-in:focus{border-color:rgba(0,255,136,.5);box-shadow:0 0 10px rgba(0,255,136,.1)}
+.chat-send{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.4);color:var(--green);padding:8px 18px;font-family:var(--display);font-size:10px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);transition:all .15s}
+.chat-send:hover{background:rgba(0,255,136,.22);box-shadow:var(--glow-g)}
+
+/* MISC */
+.inp{background:var(--panel2);border:1px solid var(--border2);color:var(--text);padding:7px 12px;font-family:var(--mono);font-size:12px;outline:none;clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%)}
+.inp:focus{border-color:rgba(0,255,136,.4)}
+select.inp{cursor:pointer}
+.srow{display:flex;gap:10px;margin-bottom:14px;align-items:center}
+.bd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-top:14px}
+.bd-item{background:var(--panel2);border:1px solid var(--border2);padding:12px;text-align:center;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
+.bd-num{font-family:var(--display);font-size:22px;font-weight:900;color:var(--cyan);text-shadow:var(--glow-c)}
+.bd-cat{font-size:8px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;font-family:var(--display)}
+.st-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.st-item{background:var(--panel2);border:1px solid var(--border);padding:12px 16px}
+.st-key{font-size:8px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;font-family:var(--display);margin-bottom:4px}
+.st-val{font-size:12px;color:var(--green);word-break:break-all}
+.slbl{font-size:9px;letter-spacing:2px;color:var(--text2);font-family:var(--display);text-transform:uppercase;margin-bottom:6px}
 </style>
-<script>
-  tailwind.config = {
-    darkMode:"class",
-    theme:{
-      extend:{
-        colors:{
-          "tertiary-container":"#feb528","on-primary-container":"#00586b","outline":"#859398",
-          "on-surface":"#e5e2e1","secondary-container":"#571bc1","primary-container":"#00d4ff",
-          "on-tertiary-fixed":"#281900","on-error":"#690005","on-tertiary":"#432c00",
-          "on-secondary-fixed-variant":"#5516be","on-secondary":"#3c0091",
-          "surface-container-highest":"#353534","on-background":"#e5e2e1","tertiary-fixed":"#ffdeae",
-          "surface-container":"#201f1f","surface-dim":"#131313","on-primary-fixed-variant":"#004e5f",
-          "surface-container-high":"#2a2a2a","on-tertiary-container":"#6c4900","on-primary":"#003642",
-          "on-primary-fixed":"#001f27","surface-tint":"#3cd7ff","on-tertiary-fixed-variant":"#604100",
-          "on-secondary-container":"#c4abff","primary-fixed":"#b4ebff","inverse-surface":"#e5e2e1",
-          "surface":"#131313","secondary-fixed-dim":"#d0bcff","outline-variant":"#3c494e",
-          "on-error-container":"#ffdad6","inverse-on-surface":"#313030","surface-bright":"#3a3939",
-          "error":"#ffb4ab","error-container":"#93000a","primary":"#a8e8ff",
-          "surface-container-low":"#1c1b1b","surface-variant":"#353534","inverse-primary":"#00677e",
-          "tertiary":"#ffd9a1","primary-fixed-dim":"#3cd7ff","background":"#131313",
-          "surface-container-lowest":"#0e0e0e","secondary":"#d0bcff","tertiary-fixed-dim":"#ffba3d",
-          "secondary-fixed":"#e9ddff","on-surface-variant":"#bbc9cf","on-secondary-fixed":"#23005c"
-        },
-        fontFamily:{ "headline":["Space Grotesk"],"body":["Inter"],"label":["Inter"] },
-        borderRadius:{ "DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem" },
-      }
-    }
-  }
-</script>
 </head>
-<body class="bg-surface text-on-surface font-body">
+<body>
 
-<!-- Toast Notification -->
-<div id="toast" class="fixed top-6 right-6 z-[9999] max-w-sm bg-surface-container-high border border-primary-container/30 rounded-xl px-5 py-4 shadow-2xl opacity-0 translate-y-[-20px] pointer-events-none flex items-center gap-3">
-  <span class="material-symbols-outlined text-primary-container" id="toast-icon">check_circle</span>
-  <p class="text-sm font-medium" id="toast-msg">Action completed!</p>
-</div>
-
-<!-- Sidebar -->
-<aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest flex flex-col py-6 z-50">
-  <div class="px-6 mb-10">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center">
-        <span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings:'FILL' 1;">smart_toy</span>
-      </div>
+<aside class="sidebar">
+  <div class="logo-zone">
+    <div class="logo-top">
+      <div class="logo-glyph">⬡</div>
       <div>
-        <h1 class="text-xl font-bold font-headline text-primary tracking-tight">AutoAgent AI</h1>
-        <p class="text-[10px] uppercase tracking-widest text-on-surface-variant">Qwen AI Powered</p>
+        <div class="logo-title">AUTO<br>AGENT</div>
+        <div class="logo-sub">AI // SYSTEM</div>
       </div>
     </div>
-    <div class="mt-6 px-3 py-2 bg-surface-container rounded-lg border border-outline-variant/20 flex items-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-      <p class="text-[10px] font-medium text-primary">Qwen3 8B • Online</p>
-    </div>
+    <div class="status-pill">QWEN3 8B &nbsp;// ONLINE</div>
   </div>
-  <nav class="flex-1 px-0">
-    <div class="space-y-1">
-      <a class="flex items-center gap-4 px-6 py-3 border-l-[6px] border-primary-container text-primary bg-primary-container/10 shadow-[inset_10px_0_15px_-5px_rgba(0,212,255,0.3)]" href="#">
-        <span class="material-symbols-outlined text-xl">dashboard</span>
-        <span class="text-xs uppercase tracking-wider font-bold">Dashboard</span>
-      </a>
-      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
-        <span class="material-symbols-outlined text-xl">notification_important</span>
-        <span class="text-xs uppercase tracking-wider font-medium">Clean</span>
-        <span class="ml-auto w-2 h-2 rounded-full bg-error animate-pulse"></span>
-      </a>
-      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
-        <span class="material-symbols-outlined text-xl">auto_awesome_motion</span>
-        <span class="text-xs uppercase tracking-wider font-medium">Organise</span>
-      </a>
-      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
-        <span class="material-symbols-outlined text-xl">memory</span>
-        <span class="text-xs uppercase tracking-wider font-medium">Processes</span>
-      </a>
-      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
-        <span class="material-symbols-outlined text-xl">folder_zip</span>
-        <span class="text-xs uppercase tracking-wider font-medium">Large Files</span>
-      </a>
-      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
-        <span class="material-symbols-outlined text-xl">smart_toy</span>
-        <span class="text-xs uppercase tracking-wider font-medium">AI Assistant</span>
-      </a>
-      <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-low transition-all" href="#">
-        <span class="material-symbols-outlined text-xl">settings</span>
-        <span class="text-xs uppercase tracking-wider font-medium">Settings</span>
-      </a>
-    </div>
+  <nav class="nav-zone">
+    <div class="nav-cat">// MAIN</div>
+    <div class="nav-item active" data-section="dashboard" data-glyph="◈">DASHBOARD</div>
+    <div class="nav-item" data-section="clean" data-glyph="✦">CLEAN <span class="nav-alert"></span></div>
+    <div class="nav-item" data-section="organise" data-glyph="⊡">ORGANISE</div>
+    <div class="nav-cat">// SYSTEM</div>
+    <div class="nav-item" data-section="processes" data-glyph="◎">PROCESSES</div>
+    <div class="nav-item" data-section="largefiles" data-glyph="◫">LARGE FILES</div>
+    <div class="nav-item" data-section="logs" data-glyph="⊟">ACTIVITY LOG</div>
+    <div class="nav-cat">// TOOLS</div>
+    <div class="nav-item" data-section="ai" data-glyph="⬡">AI ASSISTANT</div>
+    <div class="nav-item" data-section="settings" data-glyph="⊕">SETTINGS</div>
+    <div class="nav-item" data-section="status" data-glyph="◉">SYS STATUS</div>
   </nav>
-  <div class="px-0 pt-6 border-t border-outline-variant/10">
-    <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white transition-colors" href="#">
-      <span class="material-symbols-outlined text-xl">help</span>
-      <span class="text-xs uppercase tracking-wider font-medium">Help</span>
-    </a>
-    <a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-white transition-colors" href="#">
-      <span class="material-symbols-outlined text-xl">sensors</span>
-      <span class="text-xs uppercase tracking-wider font-medium">Status</span>
-    </a>
-  </div>
+  <div class="sys-info">SYS // AUTOAGENT v2.0<br>BUILD // 2025.03<br>NODE // LOCALHOST:5000</div>
 </aside>
 
-<!-- Main -->
-<main class="ml-64 min-h-screen bg-surface bg-grid-pattern flex flex-col">
-  <!-- Header -->
-  <header class="flex justify-between items-center px-8 py-6 bg-surface/80 backdrop-blur-md border-b border-primary-container/20">
-    <div>
-      <h2 class="font-headline text-2xl font-bold tracking-tight">System Overview</h2>
-      <p class="text-on-surface-variant text-sm pulse-text-green">Automated Agent Status: Active</p>
-    </div>
-    <div class="flex items-center gap-8 font-headline text-sm font-medium">
-      <span id="clock" class="text-on-surface-variant">--:-- --</span>
-      <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
-      <span id="health-score" class="text-primary-container font-bold drop-shadow-[0_0_8px_rgba(0,212,255,.4)]">Health: --%</span>
-      <div class="flex items-center gap-3">
-        <button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-white">
-          <span class="material-symbols-outlined">notifications</span>
-        </button>
-        <button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-white">
-          <span class="material-symbols-outlined">account_circle</span>
-        </button>
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">ROOT // <span class="bc-active" id="bc">DASHBOARD</span></div>
+    <div class="topbar-right">
+      <div class="top-stat"><span class="lbl">CPU</span>&nbsp;<span id="tb-cpu" style="color:var(--green)">--</span></div>
+      <div class="top-stat"><span class="lbl">RAM</span>&nbsp;<span id="tb-ram" style="color:var(--amber)">--</span></div>
+      <div class="top-stat"><span class="lbl">DISK</span>&nbsp;<span id="tb-disk" style="color:var(--cyan)">--GB</span></div>
+      <div style="display:flex;align-items:center;gap:8px;border-left:1px solid var(--border);padding-left:14px">
+        <span style="font-size:9px;color:var(--text2);letter-spacing:1px;font-family:var(--display)">HLTH</span>
+        <span class="hlth-num" id="tb-h">--</span>
+        <span style="font-size:9px;color:var(--text2)">%</span>
       </div>
-    </div>
-  </header>
-
-  <div class="flex-1 p-8 space-y-8">
-
-    <!-- STAT CARDS -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <!-- CPU -->
-      <div class="bg-surface-container-low border border-primary/20 p-6 rounded-xl glow-border-green hover:bg-surface-bright transition-all duration-300">
-        <div class="flex justify-between items-start mb-4">
-          <span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">CPU Usage</span>
-          <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">memory</span>
-        </div>
-        <div class="flex items-end justify-between">
-          <div>
-            <h3 id="cpu-val" class="text-4xl font-headline font-bold text-on-surface">--%</h3>
-            <p class="text-[10px] text-primary mt-1 flex items-center gap-1">
-              <span class="material-symbols-outlined text-xs">trending_up</span> Live
-            </p>
-          </div>
-          <div id="cpu-bars" class="w-16 h-12 flex items-end gap-1.5"></div>
-        </div>
-      </div>
-      <!-- RAM -->
-      <div class="bg-surface-container-low border border-secondary/20 p-6 rounded-xl glow-border-blue hover:bg-surface-bright transition-all duration-300">
-        <div class="flex justify-between items-start mb-4">
-          <span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">RAM Usage</span>
-          <span class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1;">developer_board</span>
-        </div>
-        <div class="flex items-end justify-between">
-          <div>
-            <h3 id="ram-val" class="text-4xl font-headline font-bold text-on-surface">--%</h3>
-            <p id="ram-sub" class="text-[10px] text-secondary mt-1">-- GB used</p>
-          </div>
-          <div class="relative w-12 h-12">
-            <svg class="w-full h-full transform -rotate-90">
-              <circle class="text-secondary/10" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-width="4"/>
-              <circle id="ram-ring" class="text-secondary drop-shadow-[0_0_5px_rgba(87,27,193,.6)]" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-dasharray="125.6" stroke-dashoffset="125.6" stroke-linecap="round" stroke-width="4"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-      <!-- Disk -->
-      <div class="bg-surface-container-low border border-tertiary-container/20 p-6 rounded-xl glow-border-orange hover:bg-surface-bright transition-all duration-300">
-        <div class="flex justify-between items-start mb-4">
-          <span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Disk Space</span>
-          <span class="material-symbols-outlined text-tertiary-container" style="font-variation-settings:'FILL' 1;">storage</span>
-        </div>
-        <div class="flex items-end justify-between">
-          <div>
-            <h3 id="disk-val" class="text-4xl font-headline font-bold text-on-surface">-- GB</h3>
-            <p id="disk-sub" class="text-[10px] text-tertiary-container mt-1">-- GB Free</p>
-          </div>
-          <div class="w-16 h-8 flex flex-col justify-end gap-1">
-            <div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden border border-tertiary-container/10">
-              <div id="disk-bar" class="h-full bg-gradient-to-r from-tertiary-container/60 to-tertiary-container shadow-[0_0_10px_rgba(254,181,40,.4)] transition-all duration-500" style="width:0%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Screenshots -->
-      <div class="bg-surface-container-low border border-secondary-container/20 p-6 rounded-xl glow-border-purple hover:bg-surface-bright transition-all duration-300">
-        <div class="flex justify-between items-start mb-4">
-          <span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Screenshots</span>
-          <span class="material-symbols-outlined text-secondary-container" style="font-variation-settings:'FILL' 1;">camera</span>
-        </div>
-        <div class="flex items-end justify-between">
-          <div>
-            <h3 id="ss-val" class="text-4xl font-headline font-bold text-on-surface">--</h3>
-            <p id="ss-sub" class="text-[10px] text-secondary-container mt-1">-- MB</p>
-          </div>
-          <span class="material-symbols-outlined text-secondary-container text-4xl opacity-30" style="font-variation-settings:'FILL' 1;">photo_library</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- MIDDLE GRID -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-      <!-- LEFT: MAINTENANCE + PROCESSES -->
-      <div class="lg:col-span-2 space-y-6">
-        <h3 class="font-headline text-lg font-bold flex items-center gap-2">
-          <span class="material-symbols-outlined text-primary-container">auto_fix_high</span> Quick Maintenance
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <button onclick="runAction('clean/screenshots')" class="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl border border-outline-variant/10 transition-all flex flex-col items-center gap-3 group active:scale-95">
-            <div class="w-12 h-12 rounded-full bg-secondary-container/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(208,188,255,0.6)]">
-              <span class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1;">photo_library</span>
-            </div>
-            <span class="text-[10px] font-headline font-bold uppercase tracking-widest">Clean Screenshots</span>
-          </button>
-          <button onclick="runAction('clean/recyclebin')" class="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl border border-outline-variant/10 transition-all flex flex-col items-center gap-3 group active:scale-95">
-            <div class="w-12 h-12 rounded-full bg-error-container/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,116,107,0.6)]">
-              <span class="material-symbols-outlined text-error" style="font-variation-settings:'FILL' 1;">delete_sweep</span>
-            </div>
-            <span class="text-[10px] font-headline font-bold uppercase tracking-widest">Empty Recycle Bin</span>
-          </button>
-          <button onclick="runAction('clean/downloads')" class="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl border border-outline-variant/10 transition-all flex flex-col items-center gap-3 group active:scale-95">
-            <div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(0,212,255,0.6)]">
-              <span class="material-symbols-outlined text-primary-container" style="font-variation-settings:'FILL' 1;">download_for_offline</span>
-            </div>
-            <span class="text-[10px] font-headline font-bold uppercase tracking-widest">Clean Downloads</span>
-          </button>
-          <button onclick="runAction('organise/desktop')" class="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl border border-outline-variant/10 transition-all flex flex-col items-center gap-3 group active:scale-95">
-            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(168,232,255,0.6)]">
-              <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">desktop_windows</span>
-            </div>
-            <span class="text-[10px] font-headline font-bold uppercase tracking-widest">Organise Desktop</span>
-          </button>
-          <button onclick="window.open('/api/files/large','_blank')" class="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl border border-outline-variant/10 transition-all flex flex-col items-center gap-3 group active:scale-95">
-            <div class="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,217,161,0.6)]">
-              <span class="material-symbols-outlined text-tertiary" style="font-variation-settings:'FILL' 1;">find_in_page</span>
-            </div>
-            <span class="text-[10px] font-headline font-bold uppercase tracking-widest">Find Large Files</span>
-          </button>
-          <div class="relative group pulse-ring">
-            <button onclick="runAction('clean/full')" class="relative w-full h-full bg-gradient-to-br from-tertiary-container to-orange-600 p-5 rounded-xl flex flex-col items-center justify-center gap-3 transition-transform active:scale-95 shadow-[0_0_20px_rgba(254,181,40,.3)]">
-              <span class="material-symbols-outlined text-on-tertiary-fixed text-3xl" style="font-variation-settings:'FILL' 1;">bolt</span>
-              <span class="text-[10px] font-headline font-extrabold uppercase tracking-widest text-on-tertiary-fixed">Full System Clean</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Active Processes -->
-        <div class="bg-surface-container-low rounded-xl border border-outline-variant/10 overflow-hidden">
-          <div class="px-6 py-4 border-b border-outline-variant/10 flex justify-between items-center">
-            <h4 class="font-headline font-bold text-xs uppercase tracking-widest">Active Processes</h4>
-            <div class="flex gap-12 mr-20 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">
-              <span>CPU%</span><span>RAM</span>
-            </div>
-          </div>
-          <div id="processes-list" class="divide-y divide-outline-variant/5">
-            <div class="px-6 py-4 text-xs text-on-surface-variant">Loading processes...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- RIGHT: AI CHAT -->
-      <div class="h-[640px] flex flex-col">
-        <div class="flex-1 flex flex-col bg-surface-container-lowest ai-panel-glow rounded-2xl overflow-hidden shadow-2xl">
-          <div class="p-6 border-b border-primary-container/20 flex items-center gap-3 bg-primary-container/5">
-            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,.4)]">
-              <span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings:'FILL' 1;">smart_toy</span>
-            </div>
-            <div>
-              <h4 class="font-headline font-bold text-on-surface">Qwen Assistant</h4>
-              <div class="flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                <span class="text-[10px] text-primary uppercase font-bold tracking-widest">Listening...</span>
-              </div>
-            </div>
-            <button onclick="analyseSystem()" class="ml-auto text-on-surface-variant hover:text-primary-container transition-colors" title="AI Smart Analysis">
-              <span class="material-symbols-outlined text-xl">auto_awesome</span>
-            </button>
-          </div>
-
-          <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-6">
-            <div class="flex justify-start items-start gap-3">
-              <div class="w-8 h-8 rounded-full bg-primary-container flex-shrink-0 flex items-center justify-center">
-                <span class="material-symbols-outlined text-on-primary-container text-lg" style="font-variation-settings:'FILL' 1;">smart_toy</span>
-              </div>
-              <div class="max-w-[85%] bg-surface-container-high border border-outline-variant/20 p-4 rounded-2xl rounded-tl-none">
-                <p class="text-sm text-on-surface-variant leading-relaxed">
-                  Hi! I'm AutoAgent AI powered by Qwen3 8B. I can help you clean your PC, organise files, or answer any Windows questions. What would you like to do?
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="p-4 border-t border-outline-variant/20 bg-surface-container-lowest">
-            <div class="flex items-center gap-3 bg-surface-container px-4 py-2 rounded-full border border-outline-variant/30 focus-within:border-primary-container transition-colors">
-              <input id="chat-input" class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 placeholder:text-on-surface-variant/50" placeholder="Ask AutoAgent to do something..." type="text" onkeydown="if(event.key==='Enter') sendChat()"/>
-              <button onclick="sendChat()" class="w-10 h-10 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,.4)] hover:scale-105 active:scale-95 transition-all">
-                <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">send</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- FOOTER -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-10">
-      <!-- Countdown -->
-      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10 flex items-center gap-5 hover:bg-surface-bright transition-colors">
-        <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
-          <span class="material-symbols-outlined text-3xl text-primary">timer</span>
-        </div>
-        <div>
-          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">T-Minus Scan</p>
-          <div class="flex items-baseline gap-1 font-headline font-bold text-primary">
-            <span id="cd-h" class="text-2xl countdown-digit">00</span><span class="text-xs text-on-surface-variant">:</span>
-            <span id="cd-m" class="text-2xl countdown-digit">05</span><span class="text-xs text-on-surface-variant">:</span>
-            <span id="cd-s" class="text-2xl countdown-digit">00</span>
-          </div>
-        </div>
-      </div>
-      <!-- Security -->
-      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10 flex items-center gap-5 hover:bg-surface-bright transition-colors">
-        <div class="relative w-14 h-14 flex items-center justify-center">
-          <svg class="w-full h-full transform -rotate-90">
-            <circle class="text-surface-container-highest" cx="28" cy="28" fill="transparent" r="24" stroke="currentColor" stroke-width="4"/>
-            <circle id="sec-ring" class="text-primary drop-shadow-[0_0_8px_rgba(168,232,255,.6)]" cx="28" cy="28" fill="transparent" r="24" stroke="currentColor" stroke-dasharray="150.7" stroke-dashoffset="3" stroke-linecap="round" stroke-width="4"/>
-          </svg>
-          <span class="absolute text-[10px] font-bold text-primary">98%</span>
-        </div>
-        <div>
-          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">System Integrity</p>
-          <p class="font-headline font-bold text-on-surface text-xl">Stable &amp; Secure</p>
-        </div>
-      </div>
-      <!-- Activity Feed -->
-      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10 flex items-center gap-5 hover:bg-surface-bright transition-colors">
-        <div class="w-14 h-14 bg-tertiary/10 rounded-xl flex flex-col items-center justify-center border border-tertiary/20">
-          <div class="flex items-end gap-0.5 h-6">
-            <div class="waveform-bar w-1 bg-tertiary rounded-full" style="animation-delay:.1s"></div>
-            <div class="waveform-bar w-1 bg-tertiary rounded-full" style="animation-delay:.3s"></div>
-            <div class="waveform-bar w-1 bg-tertiary rounded-full" style="animation-delay:.2s"></div>
-            <div class="waveform-bar w-1 bg-tertiary rounded-full" style="animation-delay:.4s"></div>
-          </div>
-        </div>
-        <div>
-          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Activity Feed</p>
-          <p class="font-headline font-bold text-on-surface text-xl">
-            <span id="log-count">0</span> Actions <span class="text-[10px] font-normal text-tertiary ml-1">Today</span>
-          </p>
-        </div>
-      </div>
+      <div class="clock" id="clock">--:--</div>
     </div>
   </div>
-</main>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="sec-dashboard">
+      <div class="sec-hdr"><span class="sec-glyph">◈</span><span class="sec-title">SYSTEM OVERVIEW</span><div class="sec-line"></div></div>
+      <div class="stats-grid">
+        <div class="sc">
+          <div class="sc-lbl">CPU USAGE <span>🖥</span></div>
+          <div class="sc-val" id="cpu-v">--<span class="sc-unit">%</span></div>
+          <div class="sc-sub" id="cpu-s">--</div>
+          <div class="bar"><div class="bf g" id="cpu-b" style="width:0%"></div></div>
+        </div>
+        <div class="sc am">
+          <div class="sc-lbl">RAM USAGE <span>⊞</span></div>
+          <div class="sc-val" id="ram-v">--<span class="sc-unit">%</span></div>
+          <div class="sc-sub" id="ram-s">--</div>
+          <div class="bar"><div class="bf a" id="ram-b" style="width:0%"></div></div>
+        </div>
+        <div class="sc cy">
+          <div class="sc-lbl">DISK FREE <span>⊟</span></div>
+          <div class="sc-val" id="dsk-v">--<span class="sc-unit">GB</span></div>
+          <div class="sc-sub" id="dsk-s">--</div>
+          <div class="bar"><div class="bf c" id="dsk-b" style="width:0%"></div></div>
+        </div>
+        <div class="sc re">
+          <div class="sc-lbl">SCREENSHOTS <span>📷</span></div>
+          <div class="sc-val" id="ss-v">--</div>
+          <div class="sc-sub" id="ss-s">-- MB</div>
+          <div class="bar"><div class="bf r" id="ss-b" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="act-grid">
+        <div class="ab" onclick="doAction('clean/screenshots','Clean Screenshots')"><span class="ab-icon">📷</span><div class="ab-lbl">Clean Screenshots</div><div class="ab-desc">Move all to Recycle Bin</div></div>
+        <div class="ab dng" onclick="doAction('clean/recyclebin','Empty Recycle Bin')"><span class="ab-icon">🗑</span><div class="ab-lbl">Empty Recycle Bin</div><div class="ab-desc">Permanently free space</div></div>
+        <div class="ab" onclick="doAction('clean/downloads','Clean Downloads')"><span class="ab-icon">⬇</span><div class="ab-lbl">Clean Downloads</div><div class="ab-desc">Remove .tmp .log .part</div></div>
+        <div class="ab" onclick="doOrganise('desktop')"><span class="ab-icon">🖥</span><div class="ab-lbl">Organise Desktop</div><div class="ab-desc">Sort into subfolders</div></div>
+        <div class="ab" onclick="switchSection('largefiles')"><span class="ab-icon">🔍</span><div class="ab-lbl">Find Large Files</div><div class="ab-desc">Scan & delete</div></div>
+        <div class="ab pri" onclick="doAction('clean/full','Full System Clean')"><span class="ab-icon">⚡</span><div class="ab-lbl">Full System Clean</div><div class="ab-desc">Screenshots + junk + bin</div></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><span class="pt">ACTIVE PROCESSES // TOP RAM</span><button class="btn bg" onclick="loadStats()">↻ REFRESH</button></div>
+        <table><thead><tr><th>Process</th><th>CPU%</th><th>RAM</th></tr></thead><tbody id="proc-dash"></tbody></table>
+      </div>
+      <div class="brow">
+        <div class="bcard"><span style="font-size:22px">⏱</span><div><div class="bc-lbl">T-MINUS SCAN</div><div class="bc-val" id="timer" style="font-family:var(--mono)">00:05:00</div></div></div>
+        <div class="bcard"><span style="font-size:22px">🛡</span><div><div class="bc-lbl">SYSTEM INTEGRITY</div><div class="bc-val" id="integrity">STABLE</div></div></div>
+        <div class="bcard"><span style="font-size:22px">📋</span><div><div class="bc-lbl">ACTIVITY FEED</div><div class="bc-val"><span id="logc">0</span> ACTIONS</div></div></div>
+      </div>
+    </div>
+
+    <!-- CLEAN -->
+    <div class="section" id="sec-clean">
+      <div class="sec-hdr"><span class="sec-glyph">✦</span><span class="sec-title">CLEAN OPERATIONS</span><div class="sec-line"></div></div>
+      <div class="act-grid" style="grid-template-columns:repeat(2,1fr)">
+        <div class="ab" onclick="doAction('clean/screenshots','Clean Screenshots')"><span class="ab-icon">📷</span><div class="ab-lbl">Clean Screenshots</div></div>
+        <div class="ab dng" onclick="doAction('clean/recyclebin','Empty Recycle Bin')"><span class="ab-icon">🗑</span><div class="ab-lbl">Empty Recycle Bin</div></div>
+        <div class="ab" onclick="doAction('clean/downloads','Clean Downloads')"><span class="ab-icon">⬇</span><div class="ab-lbl">Clean Downloads Junk</div></div>
+        <div class="ab pri" onclick="doAction('clean/full','Full System Clean')"><span class="ab-icon">⚡</span><div class="ab-lbl">Full System Clean</div></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><span class="pt">OPERATION LOG</span></div>
+        <div id="clean-log" style="padding:14px 18px;font-size:11px;color:var(--text2);line-height:2"><span style="color:var(--text3)">[ AWAITING OPERATION... ]</span></div>
+      </div>
+    </div>
+
+    <!-- ORGANISE -->
+    <div class="section" id="sec-organise">
+      <div class="sec-hdr"><span class="sec-glyph">⊡</span><span class="sec-title">FILE ORGANISATION</span><div class="sec-line"></div></div>
+      <div class="act-grid" style="grid-template-columns:repeat(2,1fr)">
+        <div class="ab" onclick="doOrganise('desktop')"><span class="ab-icon">🖥</span><div class="ab-lbl">Organise Desktop</div><div class="ab-desc">→ Desktop/Organised/</div></div>
+        <div class="ab" onclick="doOrganise('downloads')"><span class="ab-icon">⬇</span><div class="ab-lbl">Organise Downloads</div><div class="ab-desc">→ Downloads/Organised/</div></div>
+      </div>
+      <div class="panel" id="org-panel" style="display:none">
+        <div class="ph"><span class="pt" id="org-title">RESULT</span></div>
+        <div style="padding:16px 18px" id="org-body"></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><span class="pt">DESKTOP PREVIEW</span><button class="btn bg" onclick="loadPreview()">↻ LOAD</button></div>
+        <table><thead><tr><th>Name</th><th>Type</th><th>Size</th></tr></thead><tbody id="prev-tb"></tbody></table>
+      </div>
+    </div>
+
+    <!-- PROCESSES -->
+    <div class="section" id="sec-processes">
+      <div class="sec-hdr"><span class="sec-glyph">◎</span><span class="sec-title">PROCESS MANAGER</span><div class="sec-line"></div></div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn bg" onclick="loadProcFull()">↻ REFRESH</button></div>
+      <div class="panel">
+        <div class="ph"><span class="pt">ALL PROCESSES // TOP 20 BY RAM</span></div>
+        <table><thead><tr><th>Process</th><th>PID</th><th>CPU%</th><th>RAM</th><th>Status</th><th>Action</th></tr></thead><tbody id="proc-full"></tbody></table>
+      </div>
+    </div>
+
+    <!-- LARGE FILES -->
+    <div class="section" id="sec-largefiles">
+      <div class="sec-hdr"><span class="sec-glyph">◫</span><span class="sec-title">LARGE FILE SCANNER</span><div class="sec-line"></div></div>
+      <div class="srow">
+        <input class="inp" type="number" id="lf-mb" value="100" style="width:110px"/>
+        <select class="inp" id="lf-dir"><option value="downloads">Downloads</option><option value="desktop">Desktop</option></select>
+        <button class="btn bg" onclick="loadLF()">⬡ SCAN</button>
+        <span id="lf-tot" style="font-size:10px;color:var(--text2);letter-spacing:1px;font-family:var(--display)"></span>
+      </div>
+      <div class="panel">
+        <div class="ph"><span class="pt">RESULTS</span></div>
+        <table><thead><tr><th>File</th><th>Size</th><th>Action</th></tr></thead><tbody id="lf-tb"></tbody></table>
+      </div>
+    </div>
+
+    <!-- LOGS -->
+    <div class="section" id="sec-logs">
+      <div class="sec-hdr"><span class="sec-glyph">⊟</span><span class="sec-title">ACTIVITY LOG</span><div class="sec-line"></div></div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn bg" onclick="loadLogs()">↻ REFRESH</button></div>
+      <div class="panel">
+        <div class="ph"><span class="pt">ALL ACTIONS</span></div>
+        <table><thead><tr><th>Time</th><th>Action</th></tr></thead><tbody id="log-tb"></tbody></table>
+      </div>
+    </div>
+
+    <!-- AI -->
+    <div class="section" id="sec-ai">
+      <div class="sec-hdr"><span class="sec-glyph">⬡</span><span class="sec-title">QWEN AI TERMINAL</span><div class="sec-line"></div></div>
+      <div class="panel chat-wrap">
+        <div class="ph">
+          <span class="pt">INTERACTIVE SHELL // QWEN3 8B</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn bc" onclick="aiAnalyse()">⬡ ANALYSE</button>
+            <button class="btn br" onclick="clearChat()">✕ CLEAR</button>
+          </div>
+        </div>
+        <div class="chat-msgs" id="chat-msgs">
+          <div class="msg bot"><div class="msg-pre">// AUTOAGENT AI</div><div class="msg-body">SYSTEM ONLINE. I am AutoAgent AI powered by Qwen3 8B running locally. I can help with file management, cleanup, process control, and Windows automation. What's your command?</div></div>
+        </div>
+        <div class="chat-inrow">
+          <span class="chat-prompt">ROOT@AUTOAGENT &gt;&gt;</span>
+          <input class="chat-in" id="chat-in" placeholder="enter command..." onkeydown="if(event.key==='Enter')sendChat()"/>
+          <button class="chat-send" onclick="sendChat()">EXEC</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="section" id="sec-settings">
+      <div class="sec-hdr"><span class="sec-glyph">⊕</span><span class="sec-title">CONFIGURATION</span><div class="sec-line"></div></div>
+      <div class="panel">
+        <div class="ph"><span class="pt">SYSTEM SETTINGS</span></div>
+        <div style="padding:20px 18px;display:flex;flex-direction:column;gap:18px">
+          <div><div class="slbl">AI Model</div><input class="inp" value="qwen3:8b" style="max-width:300px"/></div>
+          <div><div class="slbl">Large File Threshold (MB)</div><input class="inp" type="number" value="100" style="max-width:200px"/></div>
+          <button class="btn bg" onclick="toast('Config saved — restart Flask to apply','ok')">SAVE CONFIG</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="section" id="sec-status">
+      <div class="sec-hdr"><span class="sec-glyph">◉</span><span class="sec-title">SYSTEM STATUS</span><div class="sec-line"></div></div>
+      <div class="panel">
+        <div class="ph"><span class="pt">PATH DIAGNOSTICS</span><button class="btn bg" onclick="loadStatus()">↻ REFRESH</button></div>
+        <div style="padding:16px 18px"><div class="st-grid" id="st-grid"></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-wrap" id="tw"></div>
 
 <script>
-const API = "http://localhost:5000/api";
-let chatHistory = [];
-let cpuHistory  = [];
-let countdown   = 300; // 5 min
+const API='http://localhost:5000/api';
+let chatHist=[],timerSecs=300,errShown=false;
+const labels={dashboard:'DASHBOARD',clean:'CLEAN',organise:'ORGANISE',processes:'PROCESSES',largefiles:'LARGE FILES',logs:'ACTIVITY LOG',ai:'AI ASSISTANT',settings:'SETTINGS',status:'SYS STATUS'};
 
-// ── TOAST ──────────────────────────────────────────────
-function showToast(msg, ok=true) {
-  const t = document.getElementById("toast");
-  const i = document.getElementById("toast-icon");
-  const m = document.getElementById("toast-msg");
-  i.textContent = ok ? "check_circle" : "error";
-  i.className = `material-symbols-outlined ${ok ? "text-primary-container" : "text-error"}`;
-  m.textContent = msg;
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 3500);
+document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>switchSection(el.dataset.section)));
+
+function switchSection(s){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.section===s));
+  document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===`sec-${s}`));
+  document.getElementById('bc').textContent=labels[s]||s;
+  if(s==='processes')loadProcFull();
+  if(s==='largefiles')loadLF();
+  if(s==='logs')loadLogs();
+  if(s==='status')loadStatus();
 }
 
-// ── ACTIONS ────────────────────────────────────────────
-async function runAction(endpoint) {
-  try {
-    const r = await fetch(`${API}/${endpoint}`, {method:"POST"});
-    const d = await r.json();
-    showToast(d.msg, d.ok);
-    if(d.ok) { fetchStats(); fetchLogs(); }
-  } catch(e) { showToast("Server error — is Flask running?", false); }
+function toast(msg,type='ok'){
+  const w=document.getElementById('tw');
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span>${type==='ok'?'✦':'⚠'}</span> ${msg}`;
+  w.prepend(el);setTimeout(()=>el.remove(),4000);
 }
 
-// ── STATS ──────────────────────────────────────────────
-async function fetchStats() {
-  try {
-    const r = await fetch(`${API}/stats`);
-    const d = await r.json();
+function T(id,t){const e=document.getElementById(id);if(e)e.textContent=t;}
+function H(id,h){const e=document.getElementById(id);if(e)e.innerHTML=h;}
+function W(id,p){const e=document.getElementById(id);if(e)e.style.width=Math.min(p,100)+'%';}
+function pclr(c){return c>50?'var(--red)':c>10?'var(--amber)':'var(--green)';}
 
-    // Clock & health
-    document.getElementById("clock").textContent        = d.time;
-    document.getElementById("health-score").textContent = `Health: ${d.health}%`;
+async function loadStats(){
+  try{
+    const r=await fetch(`${API}/stats`);if(!r.ok)throw 0;
+    const d=await r.json();errShown=false;
+    H('cpu-v',`${d.cpu}<span class="sc-unit">%</span>`);
+    H('ram-v',`${d.ram_percent}<span class="sc-unit">%</span>`);
+    H('dsk-v',`${d.disk_free_gb}<span class="sc-unit">GB</span>`);
+    T('ss-v',d.ss_count);T('cpu-s',`${d.cpu}% utilized`);
+    T('ram-s',`${d.ram_used_gb}/${d.ram_total_gb} GB`);
+    T('dsk-s',`${d.disk_used_gb}/${d.disk_total_gb} GB used`);
+    T('ss-s',`${d.ss_mb} MB`);
+    W('cpu-b',d.cpu);W('ram-b',d.ram_percent);W('dsk-b',d.disk_percent);W('ss-b',Math.min(d.ss_count*2,100));
+    T('tb-cpu',d.cpu+'%');T('tb-ram',d.ram_percent+'%');T('tb-disk',d.disk_free_gb+'GB FREE');
+    T('tb-h',d.health);T('logc',d.log_count);
+    document.getElementById('clock').textContent=d.time;
+    T('integrity',d.health>70?'STABLE & SECURE':d.health>40?'DEGRADED':'CRITICAL');
+    const tb=document.getElementById('proc-dash');
+    if(tb&&d.processes)tb.innerHTML=d.processes.slice(0,5).map(p=>`<tr><td><span class="pdot" style="background:${pclr(p.cpu)};box-shadow:0 0 6px ${pclr(p.cpu)}"></span>${p.name}</td><td style="color:${p.cpu>50?'var(--red)':p.cpu>15?'var(--amber)':'var(--text2)'}">${p.cpu}%</td><td style="color:var(--cyan)">${p.ram}</td></tr>`).join('');
+  }catch(e){if(!errShown){toast('SERVER ERROR — IS FLASK RUNNING?','err');errShown=true;}}
+}
 
-    // CPU
-    document.getElementById("cpu-val").textContent = `${d.cpu}%`;
-    cpuHistory.push(d.cpu); if(cpuHistory.length>5) cpuHistory.shift();
-    const bars = document.getElementById("cpu-bars");
-    bars.innerHTML = cpuHistory.map(v => {
-      const h = Math.max(8, Math.round(v * 0.48));
-      const op = 0.3 + (v/100)*0.7;
-      return `<div class="w-1.5 bg-primary rounded-full shadow-[0_0_6px_rgba(168,232,255,0.5)]" style="height:${h}px;opacity:${op}"></div>`;
-    }).join("");
+async function loadProcFull(){
+  try{
+    const r=await fetch(`${API}/processes`);const d=await r.json();
+    document.getElementById('proc-full').innerHTML=d.processes.map(p=>`<tr><td><span class="pdot" style="background:${pclr(p.cpu)};box-shadow:0 0 6px ${pclr(p.cpu)}"></span>${p.name}</td><td style="font-size:10px;color:var(--text2)">${p.pid}</td><td style="color:${p.cpu>50?'var(--red)':p.cpu>10?'var(--amber)':'var(--text2)'}">${p.cpu}%</td><td style="color:var(--cyan)">${p.ram}</td><td><span class="tag ${p.status==='running'?'tg':'ta'}">${p.status}</span></td><td><button class="btn br" onclick="killProc(${p.pid},'${p.name.replace(/'/g,'')}')">KILL</button></td></tr>`).join('');
+  }catch(e){toast('PROCESS LOAD ERROR','err');}
+}
 
-    // RAM
-    document.getElementById("ram-val").textContent = `${d.ram_percent}%`;
-    document.getElementById("ram-sub").textContent = `${d.ram_used_gb} / ${d.ram_total_gb} GB`;
-    const offset = 125.6 - (125.6 * d.ram_percent / 100);
-    document.getElementById("ram-ring").style.strokeDashoffset = offset;
+async function killProc(pid,name){
+  if(!confirm(`Kill ${name} (PID ${pid})?`))return;
+  const r=await fetch(`${API}/processes/kill`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pid})});
+  const d=await r.json();toast(d.msg,d.ok?'ok':'err');if(d.ok)loadProcFull();
+}
 
-    // Disk
-    document.getElementById("disk-val").textContent = `${d.disk_used_gb} GB`;
-    document.getElementById("disk-sub").textContent = `${d.disk_free_gb} GB Free`;
-    document.getElementById("disk-bar").style.width = `${d.disk_percent}%`;
+async function doAction(ep,label){
+  toast(`RUNNING // ${label.toUpperCase()}`,'ok');
+  try{
+    const r=await fetch(`${API}/${ep}`,{method:'POST'});const d=await r.json();
+    toast(d.msg,d.ok?'ok':'err');
+    const cl=document.getElementById('clean-log');
+    if(cl){const row=document.createElement('div');row.style.cssText='border-bottom:1px solid var(--border);padding:5px 0;';row.innerHTML=`<span style="color:var(--green);font-family:var(--display);font-size:9px;letter-spacing:2px">[${new Date().toLocaleTimeString()}]</span> ${d.msg}`;if(cl.firstChild?.textContent?.includes('AWAITING'))cl.innerHTML='';cl.prepend(row);}
+    loadStats();errShown=false;
+  }catch(e){toast('SERVER ERROR','err');}
+}
 
-    // Screenshots
-    document.getElementById("ss-val").textContent = d.ss_count.toLocaleString();
-    document.getElementById("ss-sub").textContent = `${d.ss_mb} MB`;
-
-    // Processes
-    const colors = ["border-primary text-primary","border-tertiary-container text-tertiary-container","border-secondary-container text-secondary-container","border-error text-error","border-secondary text-secondary"];
-    const dotColors = ["bg-primary shadow-[0_0_8px_rgba(168,232,255,0.6)]","bg-tertiary-container shadow-[0_0_8px_rgba(254,181,40,0.6)]","bg-secondary-container shadow-[0_0_8px_rgba(87,27,193,0.6)]","bg-error","bg-secondary"];
-    const pl = document.getElementById("processes-list");
-    if(d.processes.length) {
-      pl.innerHTML = d.processes.map((p,i) => {
-        const c = colors[i % colors.length];
-        const dc = dotColors[i % dotColors.length];
-        return `<div class="px-6 py-4 flex items-center justify-between hover:bg-surface-container-high transition-colors border-l-4 ${c.split(" ")[0]}">
-          <div class="flex items-center gap-4">
-            <div class="w-2 h-2 rounded-full ${dc}"></div>
-            <span class="text-sm font-medium">${p.name}</span>
-          </div>
-          <div class="flex gap-12 items-center">
-            <span class="text-xs font-bold ${c.split(" ")[1]}">${p.cpu}%</span>
-            <span class="text-xs text-on-surface-variant w-20 text-right">${p.ram}</span>
-          </div>
-        </div>`;
-      }).join("");
+async function doOrganise(tgt){
+  toast(`ORGANISING ${tgt.toUpperCase()}...`,'ok');
+  try{
+    const r=await fetch(`${API}/organise/${tgt}`,{method:'POST'});const d=await r.json();
+    toast(d.msg,d.ok?'ok':'err');
+    if(d.ok){
+      document.getElementById('org-panel').style.display='';
+      T('org-title',`RESULT // ${tgt.toUpperCase()} — ${d.count} FILES ORGANISED`);
+      const entries=Object.entries(d.breakdown||{});
+      document.getElementById('org-body').innerHTML=`<div style="font-size:11px;color:var(--text2);margin-bottom:12px;font-family:var(--display);letter-spacing:1px">PATH &gt;&gt; <span style="color:var(--cyan)">${d.dest||''}</span></div><div class="bd-grid">${entries.length?entries.map(([c,n])=>`<div class="bd-item"><div class="bd-num">${n}</div><div class="bd-cat">${c}</div></div>`).join(''):'<div style="color:var(--text3);font-size:11px">NOTHING TO ORGANISE</div>'}</div>${d.skipped?`<div style="font-size:9px;color:var(--text3);margin-top:10px;font-family:var(--display)">${d.skipped} FILES SKIPPED</div>`:''}`;
     }
-
-  } catch(e) { console.warn("Stats fetch failed", e); }
+  }catch(e){toast('ERROR','err');}
 }
 
-// ── LOGS ───────────────────────────────────────────────
-async function fetchLogs() {
-  try {
-    const r = await fetch(`${API}/logs`);
-    const d = await r.json();
-    document.getElementById("log-count").textContent = d.total;
-  } catch(e) {}
+async function loadPreview(){
+  try{
+    const r=await fetch(`${API}/files/preview?folder=desktop`);const d=await r.json();
+    document.getElementById('prev-tb').innerHTML=d.files.slice(0,30).map(f=>`<tr><td>${f.is_dir?'📁':'📄'} ${f.name}</td><td><span class="tag ${f.is_dir?'tc':'tg'}">${f.is_dir?'DIR':'FILE'}</span></td><td style="color:var(--text2)">${f.size_mb!==null?f.size_mb+' MB':'—'}</td></tr>`).join('');
+  }catch(e){toast('PREVIEW ERROR','err');}
 }
 
-// ── CHAT ───────────────────────────────────────────────
-function addMessage(text, isUser) {
-  const box = document.getElementById("chat-messages");
-  const div = document.createElement("div");
-  div.className = `flex ${isUser ? "justify-end chat-user" : "justify-start items-start gap-3 chat-ai"}`;
-  if(isUser) {
-    div.innerHTML = `<div class="max-w-[80%] bg-secondary-container text-on-surface p-4 rounded-2xl rounded-tr-none shadow-lg border border-white/5">
-      <p class="text-sm">${text}</p></div>`;
-  } else {
-    div.innerHTML = `<div class="w-8 h-8 rounded-full bg-primary-container flex-shrink-0 flex items-center justify-center">
-        <span class="material-symbols-outlined text-on-primary-container text-lg" style="font-variation-settings:'FILL' 1;">smart_toy</span></div>
-      <div class="max-w-[85%] bg-surface-container-high border border-outline-variant/20 p-4 rounded-2xl rounded-tl-none">
-        <p class="text-sm text-on-surface-variant leading-relaxed">${text}</p></div>`;
-  }
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
+async function loadLF(){
+  const mb=document.getElementById('lf-mb')?.value||100;
+  const folder=document.getElementById('lf-dir')?.value||'downloads';
+  try{
+    const r=await fetch(`${API}/files/large?mb=${mb}&folder=${folder}`);const d=await r.json();
+    T('lf-tot',`${d.total} FILES FOUND`);
+    document.getElementById('lf-tb').innerHTML=d.files.map(f=>`<tr><td style="font-size:11px;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</td><td><span class="tag ${f.size_mb>1000?'tr':f.size_mb>500?'ta':'tg'}">${f.size_mb>=1024?(f.size_mb/1024).toFixed(1)+' GB':f.size_mb+' MB'}</span></td><td><button class="btn br" onclick="delFile('${f.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',this)">⬡ DEL</button></td></tr>`).join('');
+  }catch(e){toast('SCAN ERROR','err');}
 }
 
-function addThinking() {
-  const box = document.getElementById("chat-messages");
-  const div = document.createElement("div");
-  div.id = "thinking";
-  div.className = "flex justify-start items-center gap-3 chat-ai";
-  div.innerHTML = `<div class="w-8 h-8 rounded-full bg-primary-container flex-shrink-0 flex items-center justify-center">
-      <span class="material-symbols-outlined text-on-primary-container text-lg" style="font-variation-settings:'FILL' 1;">smart_toy</span></div>
-    <div class="flex items-center gap-2 px-4 py-2 bg-surface-container-high border border-primary-container/20 rounded-full">
-      <div class="flex gap-1">
-        <div class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay:0s"></div>
-        <div class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay:.2s"></div>
-        <div class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style="animation-delay:.4s"></div>
-      </div>
-      <span class="text-[10px] uppercase font-bold text-primary-container tracking-wider">Thinking...</span>
-    </div>`;
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
+async function delFile(path,btn){
+  if(!confirm(`Delete: ${path.split('\\').pop()}?`))return;
+  btn.textContent='...';btn.disabled=true;
+  try{
+    const r=await fetch(`${API}/files/delete`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path})});
+    const d=await r.json();toast(d.msg,d.ok?'ok':'err');if(d.ok)btn.closest('tr').style.opacity='.2';
+  }catch(e){toast('DELETE ERROR','err');}
 }
 
-async function sendChat() {
-  const input = document.getElementById("chat-input");
-  const msg = input.value.trim();
-  if(!msg) return;
-  input.value = "";
-  addMessage(msg, true);
-  chatHistory.push({role:"user", content:msg});
-  addThinking();
-  try {
-    const r = await fetch(`${API}/ai/chat`, {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({message: msg, history: chatHistory.slice(-10)})
-    });
-    const d = await r.json();
-    document.getElementById("thinking")?.remove();
-    addMessage(d.reply, false);
-    if(d.ok) chatHistory.push({role:"assistant", content:d.reply});
-    fetchLogs();
-  } catch(e) {
-    document.getElementById("thinking")?.remove();
-    addMessage("⚠️ Can't reach Flask server. Make sure app.py is running!", false);
-  }
+async function loadLogs(){
+  try{
+    const r=await fetch(`${API}/logs`);const d=await r.json();
+    document.getElementById('log-tb').innerHTML=d.logs.map(l=>`<tr><td style="font-family:var(--display);font-size:9px;color:var(--green);letter-spacing:1px;white-space:nowrap">[${l.time}]</td><td style="color:var(--text2)">${l.action}</td></tr>`).join('')||'<tr><td colspan="2" style="color:var(--text3);text-align:center;padding:20px;font-family:var(--display);letter-spacing:2px;font-size:10px">NO ACTIONS LOGGED</td></tr>';
+  }catch(e){toast('LOG ERROR','err');}
 }
 
-async function analyseSystem() {
-  addMessage("Run AI smart analysis on my system", true);
-  addThinking();
-  try {
-    const r = await fetch(`${API}/ai/analyse`, {method:"POST"});
-    const d = await r.json();
-    document.getElementById("thinking")?.remove();
-    addMessage(d.reply, false);
-  } catch(e) {
-    document.getElementById("thinking")?.remove();
-    addMessage("⚠️ Analysis failed — is Flask running?", false);
-  }
+async function loadStatus(){
+  try{
+    const r=await fetch(`${API}/debug`);const d=await r.json();
+    document.getElementById('st-grid').innerHTML=Object.entries(d).map(([k,v])=>`<div class="st-item"><div class="st-key">${k}</div><div class="st-val" style="color:${v===true?'var(--green)':v===false?'var(--red)':'var(--cyan)'}">${v}</div></div>`).join('');
+  }catch(e){toast('STATUS ERROR','err');}
 }
 
-// ── COUNTDOWN ──────────────────────────────────────────
-function tickCountdown() {
-  if(countdown <= 0) { countdown = 300; fetchStats(); }
-  const h = String(Math.floor(countdown/3600)).padStart(2,"0");
-  const m = String(Math.floor((countdown%3600)/60)).padStart(2,"0");
-  const s = String(countdown%60).padStart(2,"0");
-  document.getElementById("cd-h").textContent = h;
-  document.getElementById("cd-m").textContent = m;
-  document.getElementById("cd-s").textContent = s;
-  countdown--;
+async function sendChat(){
+  const inp=document.getElementById('chat-in');const msg=inp.value.trim();if(!msg)return;
+  inp.value='';appendMsg(msg,'user');chatHist.push({role:'user',content:msg});
+  const t=appendMsg('PROCESSING...','bot');
+  try{
+    const r=await fetch(`${API}/ai/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,history:chatHist})});
+    const d=await r.json();t.querySelector('.msg-body').textContent=d.reply;
+    if(d.ok)chatHist.push({role:'assistant',content:d.reply});
+  }catch(e){t.querySelector('.msg-body').textContent='CONNECTION ERROR';}
 }
 
-// ── INIT ───────────────────────────────────────────────
-fetchStats();
-fetchLogs();
-setInterval(fetchStats, 5000);
-setInterval(fetchLogs, 10000);
-setInterval(tickCountdown, 1000);
+async function aiAnalyse(){
+  const t=appendMsg('ANALYSING SYSTEM...','bot');
+  try{const r=await fetch(`${API}/ai/analyse`,{method:'POST'});const d=await r.json();t.querySelector('.msg-body').textContent=d.reply;}
+  catch(e){t.querySelector('.msg-body').textContent='ERROR';}
+}
+
+function appendMsg(text,role){
+  const w=document.getElementById('chat-msgs');
+  const el=document.createElement('div');el.className=`msg ${role}`;
+  el.innerHTML=`<div class="msg-pre">${role==='bot'?'// AUTOAGENT AI':'// YOU'}</div><div class="msg-body">${text}</div>`;
+  w.appendChild(el);w.scrollTop=w.scrollHeight;return el;
+}
+function clearChat(){document.getElementById('chat-msgs').innerHTML='';chatHist=[];}
+
+setInterval(()=>{
+  timerSecs=timerSecs>0?timerSecs-1:300;
+  const m=String(Math.floor(timerSecs/60)).padStart(2,'0');
+  const s=String(timerSecs%60).padStart(2,'0');
+  T('timer',`00:${m}:${s}`);
+},1000);
+
+loadStats();
+setInterval(loadStats,5000);
 </script>
 </body>
 </html>
