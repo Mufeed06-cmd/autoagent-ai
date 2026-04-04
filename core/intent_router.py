@@ -1,17 +1,23 @@
 import requests
 
 def classify_intent(user_input: str) -> str:
-    """
-    Returns one of: code | file | app | chat
-    """
-    prompt = f"""Classify the following user input into exactly one category.
-Categories:
-- code : user wants to write, run, debug, or explain code
-- file : user wants to create, read, write, delete, or list files/folders
-- app  : user wants to open, close, or launch an application
-- chat : general question or conversation
+    prompt = f"""Classify this input into exactly one category.
 
-Respond with ONLY the category word. Nothing else.
+Categories:
+- code   : write, run, debug, explain, or fix code in any language
+- file   : create, read, write, delete, list files or folders
+- app    : open, launch, or close an application or program
+- search : find current info, news, facts about real people/events (starts with "search")
+- chat   : explain concepts, definitions, general knowledge, conversation
+
+Rules:
+- "what is X", "explain X", "how does X work" → chat
+- "search X", "find info on X", "latest news on X" → search
+- "open X", "launch X" → app
+- "write a X program", "debug this code" → code
+- "list files", "create file", "delete X" → file
+
+Respond with ONLY the category word.
 
 Input: {user_input}
 Category:"""
@@ -21,10 +27,12 @@ Category:"""
         "prompt": prompt,
         "stream": False
     })
-    
+
     result = response.json()["response"].strip().lower()
-    
-    # Sanitize — fallback to chat if unexpected
-    if result not in ("code", "file", "app", "chat"):
+
+    # Extract first word only in case model adds extra text
+    result = result.split()[0] if result.split() else "chat"
+
+    if result not in ("code", "file", "app", "search", "chat"):
         return "chat"
     return result

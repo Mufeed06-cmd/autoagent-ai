@@ -8,6 +8,7 @@ from core.intent_router import classify_intent
 from core.executor import extract_and_run_code
 from skills.file_ops import handle_file_command
 from skills.app_launcher import handle_app_command
+from skills.web_search import web_search
 
 def ask_ollama(messages):
     response = requests.post("http://localhost:11434/api/chat", json={
@@ -48,6 +49,11 @@ while True:
     elif intent == "app":
         result = handle_app_command(user_input)
         print(f"[AutoAgent]: {result}")
+
+    elif intent == "search":
+        print(f"[AutoAgent]: Searching for '{user_input}'...")
+        result = web_search(user_input)
+        print(f"[AutoAgent]:\n{result}")
 
     elif intent == "code":
         messages.append({"role": "user", "content": user_input})
