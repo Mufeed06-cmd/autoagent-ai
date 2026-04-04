@@ -5,3 +5,7 @@ __pycache__/
 venv/
 *.log
 .DS_Store
+temp_autoagent.c
+temp_autoagent.cpp
+temp_autoagent.exe
+litellm_uuid.txt
