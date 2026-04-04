@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoAgent AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #020408;
+    --bg2: #060d14;
+    --bg3: #0a1520;
+    --cyan: #00f5ff;
+    --green: #00ff88;
+    --red: #ff003c;
+    --yellow: #ffd700;
+    --purple: #bf00ff;
+    --dim: #1a3040;
+    --text: #a0d4e8;
+    --border: #0a3050;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    height: 100vh;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,245,255,0.015) 2px,
+      rgba(0,245,255,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* Grid background */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr 200px;
+    grid-template-rows: 50px 1fr 70px;
+    height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(90deg, var(--bg2), var(--bg3), var(--bg2));
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    animation: scanH 3s linear infinite;
+  }
+
+  @keyframes scanH {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--cyan);
+    letter-spacing: 4px;
+    text-shadow: 0 0 20px var(--cyan);
+  }
+
+  .logo span { color: var(--green); }
+
+  .header-status {
+    display: flex;
+    gap: 20px;
+    font-size: 10px;
+    color: var(--text);
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+    margin-right: 5px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .header-time {
+    font-size: 11px;
+    color: var(--cyan);
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  /* ── LEFT PANEL ── */
+  .left-panel {
+    border-right: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 15px 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .panel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--cyan);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .intent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .intent-tag {
+    font-size: 10px;
+    padding: 4px 8px;
+    border: 1px solid;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .intent-tag.code   { border-color: var(--cyan);   color: var(--cyan);   }
+  .intent-tag.file   { border-color: var(--green);  color: var(--green);  }
+  .intent-tag.app    { border-color: var(--yellow); color: var(--yellow); }
+  .intent-tag.search { border-color: var(--purple); color: var(--purple); }
+  .intent-tag.memory { border-color: #ff8800;       color: #ff8800;       }
+  .intent-tag.chat   { border-color: var(--text);   color: var(--text);   }
+
+  .intent-tag:hover { background: rgba(0,245,255,0.05); }
+
+  .sys-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text);
+  }
+
+  .stat-bar {
+    height: 3px;
+    background: var(--dim);
+    border-radius: 2px;
+    margin-top: 3px;
+    overflow: hidden;
+  }
+
+  .stat-fill {
+    height: 100%;
+    background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+    transition: width 1s ease;
+  }
+
+  /* ── MAIN CHAT ── */
+  .chat-area {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .chat-log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+
+  .chat-log::-webkit-scrollbar { width: 4px; }
+  .chat-log::-webkit-scrollbar-track { background: var(--bg2); }
+  .chat-log::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; }
+
+  .msg {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+  }
+
+  .msg-who {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+  }
+
+  .msg.user .msg-who  { color: var(--green); }
+  .msg.agent .msg-who { color: var(--cyan);  }
+
+  .msg-intent {
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+
+  .intent-code   { background: rgba(0,245,255,0.1);  color: var(--cyan);   border: 1px solid var(--cyan);   }
+  .intent-file   { background: rgba(0,255,136,0.1);  color: var(--green);  border: 1px solid var(--green);  }
+  .intent-app    { background: rgba(255,215,0,0.1);  color: var(--yellow); border: 1px solid var(--yellow); }
+  .intent-search { background: rgba(191,0,255,0.1);  color: var(--purple); border: 1px solid var(--purple); }
+  .intent-memory { background: rgba(255,136,0,0.1);  color: #ff8800;       border: 1px solid #ff8800;       }
+  .intent-chat   { background: rgba(160,212,232,0.1);color: var(--text);   border: 1px solid var(--border); }
+
+  .msg-time { color: #304050; font-size: 9px; }
+
+  .msg-body {
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 8px 12px;
+    border-left: 2px solid;
+    background: var(--bg2);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .msg.user  .msg-body { border-color: var(--green); color: var(--green);  }
+  .msg.agent .msg-body { border-color: var(--cyan);  color: var(--text);   }
+
+  /* Code blocks */
+  .msg-body code {
+    background: #0a1a2a;
+    color: var(--cyan);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  pre.code-block {
+    background: #040e18;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    padding: 10px;
+    overflow-x: auto;
+    font-size: 11px;
+    color: var(--green);
+    margin: 6px 0;
+    position: relative;
+  }
+
+  pre.code-block::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 4px; right: 8px;
+    font-size: 9px;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  .typing-indicator {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    color: var(--cyan);
+    font-size: 11px;
+  }
+
+  .typing-indicator.active { display: flex; }
+
+  .typing-dots span {
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--cyan);
+    animation: blink 1s infinite;
+  }
+
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  /* ── INPUT BAR ── */
+  .input-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+    position: relative;
+  }
+
+  .input-bar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+
+  .input-prompt {
+    color: var(--green);
+    font-size: 14px;
+    font-family: 'Orbitron', sans-serif;
+    white-space: nowrap;
+  }
+
+  #userInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    caret-color: var(--cyan);
+    letter-spacing: 1px;
+  }
+
+  #userInput::placeholder { color: #1a4060; }
+
+  .send-btn {
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .send-btn:hover {
+    background: var(--cyan);
+    color: var(--bg);
+    box-shadow: 0 0 20px var(--cyan);
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    border-left: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 15px 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .memory-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .memory-item {
+    font-size: 10px;
+    padding: 5px 8px;
+    border: 1px solid #0a2535;
+    background: #060f18;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .memory-key   { color: #ff8800; font-size: 9px; letter-spacing: 1px; }
+  .memory-value { color: var(--text); }
+
+  .no-memory { color: #1a3040; font-size: 10px; font-style: italic; }
+
+  .cmd-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .cmd-item {
+    font-size: 9px;
+    color: #304050;
+    padding: 3px 0;
+    border-bottom: 1px solid #080f18;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .cmd-item:hover { color: var(--cyan); }
+  .cmd-item span  { color: var(--green); }
+
+  /* Welcome message */
+  .welcome {
+    text-align: center;
+    padding: 40px 20px;
+    color: #1a3040;
+  }
+
+  .welcome-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--cyan);
+    text-shadow: 0 0 40px var(--cyan);
+    letter-spacing: 6px;
+    margin-bottom: 10px;
+  }
+
+  .welcome-sub {
+    font-size: 11px;
+    color: #1a4060;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+  }
+
+  .welcome-hint {
+    font-size: 10px;
+    color: #0d2535;
+    line-height: 2;
+  }
+
+  .welcome-hint span { color: var(--green); }
+
+  /* Glitch effect on logo */
+  @keyframes glitch {
+    0%, 90%, 100% { text-shadow: 0 0 40px var(--cyan); transform: none; }
+    92% { text-shadow: -2px 0 var(--red), 2px 0 var(--green); transform: skewX(-1deg); }
+    94% { text-shadow: 2px 0 var(--red), -2px 0 var(--green); transform: skewX(1deg); }
+    96% { text-shadow: 0 0 40px var(--cyan); transform: none; }
+  }
+
+  .welcome-logo { animation: glitch 4s infinite; }
+
+  /* Corner decorations */
+  .corner {
+    position: fixed;
+    width: 20px; height: 20px;
+    border-color: var(--cyan);
+    border-style: solid;
+    opacity: 0.4;
+  }
+  .corner-tl { top: 55px; left: 0; border-width: 1px 0 0 1px; }
+  .corner-tr { top: 55px; right: 0; border-width: 1px 1px 0 0; }
+  .corner-bl { bottom: 75px; left: 0; border-width: 0 0 1px 1px; }
+  .corner-br { bottom: 75px; right: 0; border-width: 0 1px 1px 0; }
+</style>
+</head>
+<body>
+
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<div class="layout">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">AUTO<span>AGENT</span> AI</div>
+    <div class="header-status">
+      <span><span class="status-dot"></span>SYSTEM ONLINE</span>
+      <span><span class="status-dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></span>OLLAMA CONNECTED</span>
+      <span><span class="status-dot" style="background:var(--yellow);box-shadow:0 0 8px var(--yellow)"></span>QWEN2.5-CODER:7B</span>
+    </div>
+    <div class="header-time" id="clock">00:00:00</div>
+  </header>
+
+  <!-- LEFT PANEL -->
+  <aside class="left-panel">
+    <div class="panel-title">// INTENT TYPES</div>
+    <div class="intent-list">
+      <div class="intent-tag code"   onclick="setInput('write a python script that ')">⟨/⟩ CODE</div>
+      <div class="intent-tag file"   onclick="setInput('list files')">📁 FILE OPS</div>
+      <div class="intent-tag app"    onclick="setInput('open ')">⚡ APP LAUNCH</div>
+      <div class="intent-tag search" onclick="setInput('search ')">◎ WEB SEARCH</div>
+      <div class="intent-tag memory" onclick="setInput('what do you know about me')">◈ MEMORY</div>
+      <div class="intent-tag chat"   onclick="setInput('explain ')">▶ CHAT</div>
+    </div>
+
+    <div class="panel-title">// SYSTEM</div>
+    <div class="sys-stats">
+      <div>
+        <div class="stat-row"><span>API</span><span style="color:var(--green)">LIVE</span></div>
+        <div class="stat-bar"><div class="stat-fill" style="width:100%;background:var(--green)"></div></div>
+      </div>
+      <div>
+        <div class="stat-row"><span>MODEL</span><span style="color:var(--cyan)">LOCAL</span></div>
+        <div class="stat-bar"><div class="stat-fill" style="width:100%"></div></div>
+      </div>
+      <div>
+        <div class="stat-row"><span>MEMORY</span><span id="memCount" style="color:var(--yellow)">0 FACTS</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="memBar" style="width:0%;background:var(--yellow)"></div></div>
+      </div>
+      <div>
+        <div class="stat-row"><span>SESSION</span><span id="msgCount" style="color:var(--purple)">0 MSG</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="msgBar" style="width:0%;background:var(--purple)"></div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CHAT -->
+  <main class="chat-area">
+    <div class="chat-log" id="chatLog">
+      <div class="welcome">
+        <div class="welcome-logo">AUTOAGENT</div>
+        <div class="welcome-sub">// LOCAL AI SYSTEM v1.0.0</div>
+        <div class="welcome-hint">
+          <span>remember my name is Nakeeb</span> → store memory<br>
+          <span>open chrome</span> → launch apps<br>
+          <span>search who is X</span> → web search<br>
+          <span>write a python script</span> → generate + run code<br>
+          <span>list files</span> → file operations
+        </div>
+      </div>
+    </div>
+
+    <div class="typing-indicator" id="typing">
+      <span style="color:var(--cyan);font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px">PROCESSING</span>
+      <div class="typing-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="right-panel">
+    <div class="panel-title">// MEMORY CORE</div>
+    <div class="memory-list" id="memoryList">
+      <div class="no-memory">no data stored</div>
+    </div>
+
+    <div class="panel-title">// QUICK CMD</div>
+    <div class="cmd-list">
+      <div class="cmd-item" onclick="sendMsg('what do you know about me')"><span>►</span> recall all</div>
+      <div class="cmd-item" onclick="sendMsg('list files')"><span>►</span> list files</div>
+      <div class="cmd-item" onclick="sendMsg('open notepad')"><span>►</span> open notepad</div>
+      <div class="cmd-item" onclick="sendMsg('open chrome')"><span>►</span> open chrome</div>
+      <div class="cmd-item" onclick="sendMsg('search latest AI news')"><span>►</span> AI news</div>
+      <div class="cmd-item" onclick="sendMsg('write hello world in python')"><span>►</span> hello world</div>
+    </div>
+  </aside>
+
+  <!-- INPUT BAR -->
+  <div class="input-bar">
+    <div class="input-prompt">AGENT://&gt;</div>
+    <input type="text" id="userInput" placeholder="enter command..." autocomplete="off" />
+    <button class="send-btn" onclick="sendMsg()">EXECUTE</button>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:5000';
+let msgCount = 0;
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toTimeString().slice(0,8);
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Load memory on start
+async function loadMemory() {
+  try {
+    const res = await fetch(`${API}/memory`);
+    const data = await res.json();
+    renderMemory(data);
+  } catch(e) {
+    console.log('Memory load failed:', e);
+  }
+}
+
+function renderMemory(facts) {
+  const list = document.getElementById('memoryList');
+  const keys = Object.keys(facts);
+  if (keys.length === 0) {
+    list.innerHTML = '<div class="no-memory">no data stored</div>';
+    document.getElementById('memCount').textContent = '0 FACTS';
+    document.getElementById('memBar').style.width = '0%';
+    return;
+  }
+  list.innerHTML = keys.map(k => `
+    <div class="memory-item">
+      <div class="memory-key">${k.toUpperCase()}</div>
+      <div class="memory-value">${facts[k]}</div>
+    </div>
+  `).join('');
+  document.getElementById('memCount').textContent = `${keys.length} FACTS`;
+  document.getElementById('memBar').style.width = `${Math.min(keys.length * 20, 100)}%`;
+}
+
+// Format response — detect code blocks
+function formatResponse(text) {
+  return text.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) => {
+    return `<pre class="code-block" data-lang="${(lang||'CODE').toUpperCase()}">${escHtml(code.trim())}</pre>`;
+  }).replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function getIntentClass(intent) {
+  const map = {code:'intent-code', file:'intent-file', app:'intent-app',
+               search:'intent-search', memory:'intent-memory', chat:'intent-chat'};
+  return map[intent] || 'intent-chat';
+}
+
+function appendMsg(who, text, intent) {
+  const log = document.getElementById('chatLog');
+
+  // Remove welcome screen on first message
+  const welcome = log.querySelector('.welcome');
+  if (welcome) welcome.remove();
+
+  const time = new Date().toTimeString().slice(0,8);
+  const div = document.createElement('div');
+  div.className = `msg ${who}`;
+
+  const intentTag = intent
+    ? `<span class="msg-intent ${getIntentClass(intent)}">${intent.toUpperCase()}</span>`
+    : '';
+
+  div.innerHTML = `
+    <div class="msg-meta">
+      <span class="msg-who">${who === 'user' ? '// USER' : '// AUTOAGENT'}</span>
+      ${intentTag}
+      <span class="msg-time">${time}</span>
+    </div>
+    <div class="msg-body">${who === 'agent' ? formatResponse(text) : escHtml(text)}</div>
+  `;
+
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+
+  // Update message counter
+  msgCount++;
+  document.getElementById('msgCount').textContent = `${msgCount} MSG`;
+  document.getElementById('msgBar').style.width = `${Math.min(msgCount * 5, 100)}%`;
+}
+
+async function sendMsg(preset) {
+  const input = document.getElementById('userInput');
+  const text = preset || input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  appendMsg('user', text);
+
+  // Show typing
+  const typing = document.getElementById('typing');
+  typing.classList.add('active');
+
+  try {
+    const res = await fetch(`${API}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text })
+    });
+    const data = await res.json();
+    typing.classList.remove('active');
+    appendMsg('agent', data.response, data.intent);
+
+    // Refresh memory if memory intent
+    if (data.intent === 'memory') loadMemory();
+
+  } catch(e) {
+    typing.classList.remove('active');
+    appendMsg('agent', `CONNECTION ERROR: ${e.message}\nMake sure Flask API is running on port 5000.`);
+  }
+}
+
+function setInput(text) {
+  const input = document.getElementById('userInput');
+  input.value = text;
+  input.focus();
+}
+
+// Enter key
+document.getElementById('userInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendMsg();
+});
+
+// Load memory on start
+loadMemory();
+</script>
+</body>
+</html>
