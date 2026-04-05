@@ -4,22 +4,26 @@ def classify_intent(user_input: str) -> str:
     prompt = f"""Classify this input into exactly one category.
 
 Categories:
-- code   : write, run, debug, explain, or fix code in any language
-- file   : create, read, write, delete, list files or folders
-- app    : open, launch, or close an application or program
-- search : find current info, news, facts (starts with "search")
-- memory : remember something, recall something, forget something, what do you know about me
-- chat   : explain concepts, definitions, general knowledge, conversation
+- code     : write, run, debug, explain, or fix code
+- file     : create, read, write, delete, list files
+- app      : open, launch, or close an application
+- search   : search web, find current info or news
+- memory   : remember, recall, forget personal facts
+- organize : organize folder, clean screenshots, find duplicates, analyze disk, sort files
+- chat     : explain concepts, general knowledge, conversation
 
 Rules:
-- "remember my name is X" → memory
-- "what do you know about me" → memory
-- "recall X", "forget X" → memory
-- "what is X", "explain X" → chat
+- "organize my downloads" → organize
+- "clean screenshots" → organize
+- "find duplicate files" → organize
+- "how much disk space" → organize
+- "sort files in folder" → organize
+- "what is X" → chat
 - "search X" → search
 - "open X" → app
 - "write code" → code
 - "list files" → file
+- "remember X" → memory
 
 Respond with ONLY the category word.
 
@@ -35,6 +39,6 @@ Category:"""
     result = response.json()["response"].strip().lower()
     result = result.split()[0] if result.split() else "chat"
 
-    if result not in ("code", "file", "app", "search", "memory", "chat"):
+    if result not in ("code", "file", "app", "search", "memory", "organize", "chat"):
         return "chat"
     return result
