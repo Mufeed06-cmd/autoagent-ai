@@ -2,27 +2,30 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sys
 import os
+import re
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from core.intent_router import classify_intent
-from core.executor import extract_and_run_code
 from skills.file_ops import handle_file_command
 from skills.app_launcher import handle_app_command
 from skills.web_search import web_search
 from skills.memory import (
     remember, recall, recall_all, forget,
-    add_history, get_history, load_memory
+    add_history, load_memory
 )
+from skills.organizer.file_organizer import organize_folder
+from skills.organizer.duplicate_finder import find_duplicates, delete_duplicates
+from skills.organizer.disk_analyzer import disk_usage, folder_summary
+from skills.organizer.screenshot_cleaner import clean_screenshots
 import requests as req
 
 app = Flask(__name__)
-CORS(app)  # Allow frontend to talk to this API
+CORS(app)
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
 MODEL = "qwen2.5-coder:7b"
 
-# Load memory into system prompt at startup
 def build_system_prompt():
     mem = load_memory()
     facts_str = ""
@@ -37,7 +40,6 @@ def build_system_prompt():
         + facts_str
     )
 
-# In-memory chat history for current session
 chat_messages = [
     {"role": "system", "content": build_system_prompt()}
 ]
@@ -70,6 +72,37 @@ def handle_memory_command(user_input: str) -> str:
         return recall(rest)
     return recall_all()
 
+def handle_organize_command(user_input: str) -> str:
+    text = user_input.lower()
+
+    # Extract Windows path
+    path_match = re.search(r'[A-Za-z]:\\[^\s]+', user_input)
+    folder = path_match.group(0).rstrip("\\") if path_match else "."
+
+    if "duplicate" in text and ("delete" in text or "remove" in text):
+        return delete_duplicates(folder)
+
+    if "duplicate" in text:
+        return find_duplicates(folder)
+
+    if any(w in text for w in ["disk", "usage", "space", "size"]):
+        return disk_usage(folder)
+
+    if "screenshot" in text and any(w in text for w in ["clean", "delete", "remove", "old"]):
+        return clean_screenshots(folder, days_old=30, dry_run=False)
+
+    if "screenshot" in text:
+        return clean_screenshots(folder, days_old=30, dry_run=True)
+
+    if "summary" in text:
+        return folder_summary(folder)
+
+    if any(w in text for w in ["organize", "sort", "arrange"]):
+        preview = organize_folder(folder, dry_run=True)
+        return f"PREVIEW (not executed — confirm via terminal):\n{preview}"
+
+    return folder_summary(folder)
+
 # ─── ROUTES ────────────────────────────────────────────
 
 @app.route("/", methods=["GET"])
@@ -101,7 +134,6 @@ def chat():
 
     user_input = data["message"].strip()
     intent = classify_intent(user_input)
-
     response_text = ""
 
     if intent == "file":
@@ -115,6 +147,9 @@ def chat():
 
     elif intent == "memory":
         response_text = handle_memory_command(user_input)
+
+    elif intent == "organize":
+        response_text = handle_organize_command(user_input)
 
     elif intent == "code":
         chat_messages.append({"role": "user", "content": user_input})
@@ -155,6 +190,7 @@ def delete_memory(key):
 
 @app.route("/history", methods=["GET"])
 def history():
+    from skills.memory import get_history
     return jsonify(get_history())
 
 @app.route("/history", methods=["DELETE"])
